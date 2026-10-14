@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Reviewer Gate Fase 1 + 8 decisiones (2026-10-13, corrida 2): NO PASS</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:920px;margin:2rem auto;padding:0 1rem;color:#1a1a1a}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:.4rem .6rem;text-align:left}
+.verdict{background:#fde8e8;border:2px solid #b00;padding:.8rem 1rem;font-weight:bold}
+code{font-size:.9em}
+</style>
+</head>
+<body>
+<h1>Reviewer Gate — Fase 1 con 8 decisiones [ADOPTED] (corrida 2)</h1>
+<div class="verdict">Veredicto oficial: NO PASS. Fase 1 sigue sin resultado aceptable; no se marca completa.</div>
+<h2>Lentes (una sola corrida)</h2>
+<table>
+<tr><th>Lente</th><th>Veredicto</th><th>Reporte</th></tr>
+<tr><td>Lint</td><td><code>ok:false</code>, solo 3 <code>low</code> conocidos (l.65)</td><td><code>reviews/review-lint-20261013-2.json</code></td></tr>
+<tr><td>Rubric</td><td><strong>ROBUSTO</strong> + 4 observaciones no bloqueantes</td><td><code>reviews/review-rubric-20261013-2.md</code></td></tr>
+<tr><td>Web-verification</td><td><strong>PASS</strong></td><td><code>reviews/review-web-verification-20261013-2.md</code></td></tr>
+<tr><td>Adversarial</td><td><strong>NO ROBUSTO (16 pares nuevos)</strong></td><td><code>reviews/review-adversarial-20261013-2.md</code></td></tr>
+</table>
+<h2>Decisiones aplicadas</h2>
+<p>D1 hash normativo AD-04 §5 · D2 transporte at/term · D3 roster 422 con <code>roster.rejected</code> posterior · D4 cola 50ms/50ev, llena→503 · D5 reingesta sin idempotencia · D6 scheduler + guarda <code>now&gt;=exp</code> · D7 post-revocación 403 unificado · D8 UUID estándar sin recorte. Detalle en memlog.</p>
+<h2>Bloqueantes</h2>
+<p>N-01…N-16 en el reporte adversarial (serialización hash, at ausente/inválido, term query/body, ventana roster.rejected, cadena ledger, cola llena, doble dueño expiración, at histórico, 401/403, UUID/blancos, reingesta concurrente, header/path, email-case, 5MB/413, replay vs P3, BEGIN IMMEDIATE vs predicado) + pendientes previos (matriz rol×acción, capacidad cola, recuperación, frecuencia scheduler, timestamp, COMPLETED, TTL, NFR).</p>
+<h2>Rutas</h2>
+<ul>
+<li><code>reviews/review-lint-20261013-2.json</code></li>
+<li><code>reviews/review-rubric-20261013-2.md</code></li>
+<li><code>reviews/review-web-verification-20261013-2.md</code></li>
+<li><code>reviews/review-adversarial-20261013-2.md</code></li>
+<li><code>reviews/validation-gate-20261013-2.md</code> / <code>.html</code></li>
+</ul>
+</body>
+</html>

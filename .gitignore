@@ -1,0 +1,12 @@
+# Entornos y caches (no son evidencia del taller)
+.venv/
+**/.venv/
+node_modules/
+**/node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+.DS_Store
+.work/swift-module-cache/

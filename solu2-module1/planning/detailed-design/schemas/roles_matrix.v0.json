@@ -1,0 +1,65 @@
+{
+  "version": "v0",
+  "approved": "estudiante 2026-10-13 (F-02; Ronda 6 Q5 [ADOPTED 2026-10-13])",
+  "source": ".work/paquete-decisiones-F-H.md (F-02; Ronda 6 Q5)",
+  "note": "Dato versionado, no código. Claves ejecutables {subject_id, role, action, resource_class, allow}. action es el enum cerrado {inference, training} (otro valor → 400 MALFORMED_ACTION); '*' = cualquier action del enum, y allow:false es una negación explícita. Toda combinación sin fila → 403 UNAUTHORIZED_RESOURCE_CLASS (fail-closed). Roles = roles.id exactos del DDL, sin transformar (H-26, R2-01). Derivación de resource_class desde el segmento model del ARN mediante resource_catalog [ADOPTED 2026-10-14, estudiante] (R6b-01); model ausente del catálogo → 403 UNAUTHORIZED_RESOURCE_CLASS (fail-closed). Cubre ADVF-07; ver contracts §6.",
+  "rows": [
+    {
+      "subject_id": "CS101",
+      "role": "student",
+      "action": "inference",
+      "resource_class": "cpu_toy",
+      "allow": true,
+      "citation": "planning/prd.md:244 (PRD §5.1: sin GPU, solo inferencia CPU de modelos juguete)"
+    },
+    {
+      "subject_id": "CS101",
+      "role": "student",
+      "action": "*",
+      "resource_class": "gpu",
+      "allow": false,
+      "citation": "planning/prd.md:244 (PRD §5.1: cero acceso a GPU)"
+    },
+    {
+      "subject_id": "CS-480",
+      "role": "student",
+      "action": "inference",
+      "resource_class": "gpu_24gb_workstation",
+      "allow": true,
+      "citation": "planning/prd.md:244 (PRD §5.1: inferencia 8B en workstations de 24 GB)"
+    },
+    {
+      "subject_id": "CS-480",
+      "role": "ta",
+      "action": "inference",
+      "resource_class": "gpu_24gb_workstation",
+      "allow": true,
+      "citation": "references/task-solu2_UniversityAICompute_Workshop.pdf p.13 (Annex A: 'TA in CS-480 (high priority)') + planning/prd.md:76 (permisos base de estudiante)"
+    },
+    {
+      "subject_id": "CS-480",
+      "role": "instructor_privileged",
+      "action": "training",
+      "resource_class": "gpu_workstation_or_central",
+      "allow": true,
+      "citation": "planning/prd.md:154 (PRD §4.2 FR-ESCAL-02: colas de entrenamiento en workstations y servidor central)"
+    }
+  ],
+  "resource_catalog": [
+    {
+      "model": "llama-3-8b-instruct",
+      "resource_class": "gpu_24gb_workstation",
+      "citation": "planning/prd.md:53 (model:llama-3-8b-instruct:cs480); planning/prd.md:244 (modelos de 8B en workstations de 24 GB)"
+    },
+    {
+      "model": "toy-cpu-demo",
+      "resource_class": "cpu_toy",
+      "citation": "[ASSUMPTION] nombre de fixture; planning/prd.md:244 (modelos juguete en CPU) no da nombre"
+    },
+    {
+      "model": "train-queue",
+      "resource_class": "gpu_workstation_or_central",
+      "citation": "[ASSUMPTION] nombre de fixture; planning/prd.md:154"
+    }
+  ]
+}

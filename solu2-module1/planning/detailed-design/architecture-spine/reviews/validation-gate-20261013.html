@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Validation Gate — Architecture Spine Módulo 1 (2026-10-13): NO PASS</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem;color:#1a1a1a}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid #999;padding:.4rem .6rem;text-align:left}
+.verdict{background:#fde8e8;border:2px solid #b00;padding:.8rem 1rem;font-weight:bold}
+code{font-size:.9em}
+</style>
+</head>
+<body>
+<h1>Validation Gate — Architecture Spine + companions (2026-10-13)</h1>
+<p><strong>Alcance:</strong> <code>architecture-spine/ARCHITECTURE-SPINE.md</code> (draft) y companions, incluido <code>contracts.md</code> con los cambios Fase 1 desde <code>resultados-interaccion.md</code>.<br>
+<strong>Intención:</strong> Validate — solo lectura; ningún artefacto editado, ningún [OPEN] cerrado, sin lógica ni <code>bmad-build</code>.</p>
+<div class="verdict">Veredicto oficial del gate: NO PASS. El spine permanece en draft; no pasar a Fase 3.</div>
+<h2>Resultados por lente</h2>
+<table>
+<tr><th>Lente</th><th>Veredicto</th><th>Reporte</th></tr>
+<tr><td>Lint (<code>lint_spine.py</code>)</td><td><code>ok:false</code> — solo 3 <code>low</code>, falsos positivos por params de ruta l.65</td><td>consola (ver <code>reviews/review-lint-20261013.md</code> como referencia previa)</td></tr>
+<tr><td>Rubric walker</td><td><strong>CONDITIONAL</strong></td><td><code>reviews/review-rubric-validate-20261013.md</code></td></tr>
+<tr><td>Web-verification</td><td><strong>PASS</strong> — FastAPI 0.143.0, Pydantic 2.14.1, SQLAlchemy 2.0.54 vigentes (PyPI 2026-10-13); NFR siguen PLANNED</td><td><code>reviews/review-web-verification-validate-20261013.md</code></td></tr>
+<tr><td>Adversarial</td><td><strong>NO ROBUSTO (6 pares)</strong> — 5 ya [OPEN], 1 faceta nueva</td><td><code>reviews/review-adversarial-validate-20261013.md</code></td></tr>
+</table>
+<h2>Hallazgos que aún bloquean</h2>
+<ol>
+<li><strong>[OPEN-01]</strong> Normalización vs AD-01 crudo byte-a-byte. Par P-01.</li>
+<li><strong>[OPEN-02]</strong> Caché vs DB-autoridad. Par P-02.</li>
+<li><strong>[OPEN-03]</strong> Scheduler vs expiración perezosa. Par P-03.</li>
+<li><strong>[OPEN-04]</strong> Ledger en rechazo, SUCCESS vs catálogo, Q-fail vs Q3. Par P-04.</li>
+<li><strong>[OPEN-05]</strong> Single-statement vs BEGIN IMMEDIATE, bound de cola. Par P-05.</li>
+<li><strong>[OPEN-06/07/09/10]</strong> Transporte at/term, 401, estados terminales, TTL, matriz rol×acción. Par P-06.</li>
+<li><strong>Faceta NUEVA:</strong> case de <code>userId</code>/<code>term</code> fuera del alcance actual de [OPEN-01]. Ver reporte adversarial §P-06.</li>
+<li>Reingesta en [ASSUMPTION]/[OPEN] hasta acuerdo del equipo.</li>
+</ol>
+<h2>Cambios Winston verificados</h2>
+<p>Autoridad heredado/spine-local, §3 I2 solo AD-02, §2 I3 + PRD §7.3, §1 I4 sin cuota/prioridad, exclusión mutua fuera de alcance, reingesta degradada — todos conformes a fuente, sin invenciones. Los reportes anteriores no validan esta versión; este gate la reevaluó: <strong>NO PASS</strong>.</p>
+<h2>Rutas de esta corrida</h2>
+<ul>
+<li><code>solu2-module1/planning/detailed-design/architecture-spine/reviews/review-rubric-validate-20261013.md</code></li>
+<li><code>solu2-module1/planning/detailed-design/architecture-spine/reviews/review-web-verification-validate-20261013.md</code></li>
+<li><code>solu2-module1/planning/detailed-design/architecture-spine/reviews/review-adversarial-validate-20261013.md</code></li>
+<li><code>solu2-module1/planning/detailed-design/architecture-spine/reviews/validation-gate-20261013.md</code> / <code>.html</code></li>
+</ul>
+</body>
+</html>

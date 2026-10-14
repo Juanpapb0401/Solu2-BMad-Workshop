@@ -1,0 +1,182 @@
+# quality-gate.yml — PLANTILLA GitHub Actions para solu2-module1 (BMad bmad-testarch-ci, Fast path).
+#
+# Estado: PLANTILLA sin activar. No hay repo/remote (AGENTS.md: SIN remote, SIN push,
+# SIN git init). Para activarla en remoto: crear el repo, copiar este archivo a
+# `<repo-root>/.github/workflows/quality-gate.yml` y ajustar `WORKDIR` si el layout cambia.
+# NUNCA se ejecutó en remoto: prohibido declarar "CI PASS" remoto.
+#
+# Stack: Python 3.11, pytest + pytest-cov, requirements-dev.txt.
+# Backend-only: sin navegadores, sin sharding, sin burn-in (el burn-in del template
+# genérico persigue flakiness de UI; aquí no aplica — checklist adaptada en
+# solu2-module1/test/ci-quality-gate.md).
+# Decisión H-25: app/domain/ puro — sin fastapi, sqlalchemy, sqlite3, random,
+# secrets, uuid, os.urandom, time, datetime.now/utcnow/today.
+# Regla RED-phase: la suite ATDD (marker `atdd`) se espera en ROJO por
+# NotImplementedError. El gate distingue "RED esperado" de errores de
+# colección/import/sintaxis, que SÍ rompen el gate. Cobertura app/domain/ ≥90%
+# configurada pero INFORMATIVA (continue-on-error) hasta que exista implementación.
+
+name: quality-gate (solu2-module1)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: quality-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  WORKDIR: solu2-module1
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  quality-gate:
+    name: quality-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: solu2-module1/requirements-dev.txt
+
+      - name: Instalar requirements-dev.txt (+ pyyaml solo para parsear openapi.yaml)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+          python -m pip install pyyaml
+
+      # — Etapa 1 (BLOQUEANTE): pureza de app/domain/ — decisión H-25.
+      - name: "Etapa 1: lint pureza domain/ (H-25) [BLOQUEANTE]"
+        run: |
+          python - <<'EOF'
+          import ast, pathlib, sys
+          BANNED_IMPORTS = {"fastapi", "sqlalchemy", "sqlite3", "random", "secrets", "uuid", "time", "os"}
+          BANNED_ATTRS = {"now", "utcnow", "today"}  # datetime.now/utcnow/today
+          errors = []
+          for path in sorted(pathlib.Path("app/domain").glob("*.py")):
+              tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Import):
+                      for a in node.names:
+                          if (a.name or "").split(".")[0] in BANNED_IMPORTS:
+                              errors.append(f"{path}:{node.lineno} import prohibido (H-25): {a.name}")
+                  elif isinstance(node, ast.ImportFrom):
+                      if (node.module or "").split(".")[0] in BANNED_IMPORTS:
+                          errors.append(f"{path}:{node.lineno} from-import prohibido (H-25): {node.module}")
+                  elif isinstance(node, ast.Attribute):
+                      if node.attr == "urandom" and isinstance(node.value, ast.Name) and node.value.id == "os":
+                          errors.append(f"{path}:{node.lineno} os.urandom prohibido (H-25)")
+                      if node.attr in BANNED_ATTRS:
+                          errors.append(f"{path}:{node.lineno} reloj prohibido (H-25): .{node.attr}()")
+          if errors:
+              print("PUREZA domain/ ROTA (H-25):")
+              print("\n".join(errors))
+              sys.exit(1)
+          print("OK pureza domain/ (H-25)")
+          EOF
+
+      # — Etapa 2 (BLOQUEANTE): DDL válida en sqlite3 :memory:.
+      - name: "Etapa 2: validar DDL en :memory: [BLOQUEANTE]"
+        run: |
+          python - <<'EOF'
+          import sqlite3
+          ddl = open("planning/detailed-design/schemas/001_module1_schema.sql", encoding="utf-8").read()
+          conn = sqlite3.connect(":memory:")
+          conn.executescript(ddl)
+          tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+          required = {"identities", "subjects", "roles", "subject_memberships",
+                      "escalation_tickets", "subject_credentials", "audit_ledger",
+                      "audit_ledger_metadata", "audit_events"}
+          missing = required - tables
+          assert not missing, f"tablas faltantes en DDL: {sorted(missing)}"
+          print("OK DDL :memory:, tablas:", sorted(tables))
+          EOF
+
+      # — Etapa 3 (BLOQUEANTE): schemas/dto.py importa (Pydantic v2).
+      - name: "Etapa 3: importar schemas/dto.py [BLOQUEANTE]"
+        run: |
+          python -c "import sys; sys.path.insert(0, 'planning/detailed-design/schemas'); import dto; print('OK dto.py:', sorted(n for n in vars(dto) if not n.startswith('_'))[:8], '...')"
+
+      # — Etapa 4 (BLOQUEANTE): openapi.yaml parsea y trae las 3 operationIds.
+      - name: "Etapa 4: parsear openapi.yaml [BLOQUEANTE]"
+        run: |
+          python - <<'EOF'
+          import yaml
+          spec = yaml.safe_load(open("planning/detailed-design/schemas/openapi.yaml", encoding="utf-8"))
+          ops = {m.get("operationId") for p in spec.get("paths", {}).values() for m in p.values() if isinstance(m, dict)}
+          required = {"resolveEffectivePermissions", "revokeCourseAccess", "ingestRoster"}
+          missing = required - ops
+          assert not missing, f"operationIds faltantes: {sorted(missing)}"
+          print("OK openapi.yaml, operationIds:", sorted(ops))
+          EOF
+
+      # — Etapa 5 (BLOQUEANTE): suite verde sin ATDD.
+      - name: "Etapa 5: pytest verde (not atdd) [BLOQUEANTE]"
+        run: |
+          python -m pytest -m "not atdd" -q
+
+      # — Etapa 6 (BLOQUEANTE): la suite ATDD debe COLECTARSE sin errores.
+      # Colección/import/sintaxis rotas SÍ rompen el gate (no son "RED esperado").
+      # Código 5 = "no tests collected" (test/atdd/ aún vacío): NO es error de colección.
+      - name: "Etapa 6: ATDD collect-only [BLOQUEANTE]"
+        run: |
+          set +e
+          python -m pytest -m atdd --collect-only -q
+          CODE=$?
+          if [ $CODE -eq 0 ] || [ $CODE -eq 5 ]; then
+            echo "OK: ATDD collect-only sin errores (código $CODE)."
+          else
+            echo "::error::ATDD collect-only con código $CODE: ROMPE el gate."
+            exit 1
+          fi
+
+      # — Etapa 7 (RED esperado): ATDD en rojo SOLO por NotImplementedError.
+      # Exit 0 (verde inesperado) = aviso, no fail: significaría que ya hay
+      # implementación y el gate debe recalibrarse a GREEN-phase.
+      # Código 5 (test/atdd/ vacío, nada que correr) = PENDIENTE, no bloquea.
+      # Fallos sin NotImplementedError (colección/import/sintaxis/otro) = FAIL.
+      - name: "Etapa 7: ATDD RED esperado (solo NotImplementedError)"
+        run: |
+          set +e
+          OUT=$(python -m pytest -m atdd -q 2>&1)
+          CODE=$?
+          echo "$OUT"
+          if [ $CODE -eq 0 ]; then
+            echo "::warning::ATDD en VERDE inesperado en RED-phase: hay implementación; recalibrar gate a GREEN-phase."
+            exit 0
+          fi
+          if [ $CODE -eq 5 ] || echo "$OUT" | grep -qE "no tests ran|no tests collected"; then
+            echo "::notice::ATDD PENDIENTE: test/atdd/ vacío (código $CODE). No bloquea."
+            exit 0
+          fi
+          if echo "$OUT" | grep -qE "ERROR|error.*(collect|import)|SyntaxError|ModuleNotFoundError|ImportError"; then
+            echo "::error::ATDD con error de colección/import/sintaxis: ROMPE el gate (no es RED esperado)."
+            exit 1
+          fi
+          if echo "$OUT" | grep -q "NotImplementedError"; then
+            echo "OK: ATDD en RED esperado por NotImplementedError."
+            exit 0
+          fi
+          echo "::error::ATDD en rojo por causa DISTINTA de NotImplementedError: ROMPE el gate."
+          exit 1
+
+      # — Etapa 8 (INFORMATIVA): cobertura app/domain/ ≥90%, no bloquea hasta
+      # que exista implementación.
+      - name: "Etapa 8: cobertura domain/ ≥90% [INFORMATIVA]"
+        continue-on-error: true
+        run: |
+          python -m pytest -m "not atdd" -q --cov=app/domain --cov-report=term-missing --cov-fail-under=90

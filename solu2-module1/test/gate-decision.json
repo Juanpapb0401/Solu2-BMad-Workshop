@@ -1,0 +1,20 @@
+{
+  "schema_version": "0.1.0",
+  "evaluated_at": "2026-10-14T00:00:00.000Z",
+  "repo": "Solu-2: University AI Compute Fabric, Module 1",
+  "target": { "type": "story", "id": null, "label": "Módulo 1 (system-level, sin historia única)" },
+  "collection_status": "COLLECTED",
+  "gate_basis": "priority_thresholds",
+  "gate_status": "FAIL",
+  "rationale": "P0 coverage is 29% (required: 100%). 5 critical requirement(s) below FULL coverage.",
+  "p0_status": "NOT_MET",
+  "p1_status": "NOT_MET",
+  "overall_status": "NOT_MET",
+  "critical_open": 5,
+  "links": {
+    "trace_report_path": "/Users/juanpabloparra/NovenoSemestre/ProcesoIA/Solu2-UniversityAICompute/Solu2-BMad-Workshop/solu2-module1/test/traceability-matrix.md",
+    "trace_report_url": "",
+    "artifact_url": "",
+    "journey_evidence_url": ""
+  }
+}

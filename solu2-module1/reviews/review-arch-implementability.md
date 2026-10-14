@@ -1,0 +1,59 @@
+Copia para el paquete de entrega; fuente canónica: planning/detailed-design/reviews/review-arch-implementability.md
+
+# Fase 0 — Triage del gap audit de arquitectura (borrador)
+
+**Estado:** triage propuesto para revisión del equipo; todavía no es una decisión humana firmada. `ACCEPT` significa que aceptamos el gap como real y que debe recibir una resolución visible; no implica aceptar automáticamente la solución sugerida por el reviewer. Los IDs AR corresponden, en orden, a los 14 hallazgos del informe adversarial crudo; los IDs EC corresponden, en orden, a los 16 objetos JSON del edge-case hunter. Los archivos crudos se conservan sin reemplazarlos.
+
+**Fuentes:** `review-arch-adversarial-raw.md`, `review-arch-edge-cases-raw.json`, Plan-2 `planning/prd.md`, `planning/ARCHITECTURE.md`, `ux/EXPERIENCE.md` y `ux/C-UX-Scenarios/`.
+
+**Selección aprobada por el usuario el 2026-10-12:** el Annex A, página 13, ofrece exactamente tres candidatas para el Módulo 1: `resolveEffectivePermissions(userId, courseId, at)`, `revokeCourseAccess(userId, courseId)` e `ingestRoster(batch)`. Se trabajará con las tres.
+
+**Stack confirmado por el usuario el 2026-10-12:** conservar Python 3.11+ / FastAPI / Pydantic v2 / SQLAlchemy 2.0 / SQLite WAL, con un único writer, como ya establece la arquitectura Plan-2. La alternativa Node.js/PostgreSQL y las metas NFR incompatibles quedan explícitamente triageadas abajo; no se afirma que se hayan medido sus resultados.
+
+**Responsables:** `Architect-lead` y `Test-lead`, nombres por confirmar. La persona que registra el resultado BMad no se atribuye las decisiones de su compañero/a.
+
+## Triage del review adversarial
+
+| ID | Hallazgo resumido | Disposición propuesta | Resolución / fase y responsable |
+|---|---|---|---|
+| AR-01 | La firma de `resolveEffectivePermissions` no coincide con el endpoint/motor `authorize`; identidad, curso, ARN, acción y tiempo no tienen mapeo canónico. | ACCEPT | En Fase 1 definir contrato de operación y DTO; mapear al endpoint existente sin duplicar el motor. Architect-lead. |
+| AR-02 | `revokeCourseAccess` tiene tres rutas descritas y semántica/idempotencia/auditoría de la repetición incompletas. | ACCEPT | Elegir una ruta canónica a partir del PRD/AD; especificar transiciones, resultado de repetición y cero eventos redundantes. Architect-lead. |
+| AR-03 | `ingestRoster(batch)` carece de esquema completo y orden inequívoco entre validación y transacción. | ACCEPT | Definir DTO/primitivos, límites exactos, errores por fila y atomicidad all-or-nothing. Architect-lead + Test-lead. |
+| AR-04 | El edge de estudiante sin GPU y TA de alta prioridad colisiona con el límite de módulo que asigna cuotas GPU a otros módulos. | ACCEPT | En Módulo 1 probar resolución por `course_id` sin unión de roles; no calcular cuota GPU ni importar reglas de Módulo 2/8. Dejar esas decisiones de cuota DEFERRED fuera del scope. Architect-lead. |
+| AR-05 | Los estados de explicación UX y `reason_code` no comparten un DTO/catálogo cerrado. | ACCEPT | Crear `ExplanationDTO`/`ErrorBody` con regla citada, valores observados, código cerrado y acción permitida; mapear a estado UX. Architect-lead + Test-lead. |
+| AR-06 | Normalización de `course_id`/ARN y comparación de `AD-01` no están completamente especificadas. | ACCEPT | Definir un parser/normalizador único, gramática, comparación de contexto y errores. Conservar las grafías de entrada solo como datos de presentación. Architect-lead. |
+| AR-07 | El contrato temporal de privilegios escalados no fija borde de expiración, fuente del reloj ni ejecución del vencimiento. | ACCEPT | Usar `Clock` inyectado y el intervalo de vigencia `[granted_at, expires_at)` como propuesta; `at >= expires_at` está expirado. Confirmar el guard contra AD/PRD en Fase 1; no usar `sleep` ni reloj de pared en dominio. Architect-lead + Test-lead. |
+| AR-08 | Errores aparecen con códigos/status inconsistentes y no existe catálogo tipado común. | ACCEPT | Resolver precedencia PRD/AD, declarar status/code/retryability y evitar crear códigos duplicados. Fase 1, contracts/OpenAPI. Architect-lead. |
+| AR-09 | Atomicidad/idempotencia de roster y revocación, carrera entre resolver y revocar, y ventana de persistencia no tienen comportamiento cerrado. | ACCEPT | Definir serialización/condición de actualización en la base, idempotency receipt si lo exige el contrato, y orden de auditoría; prueba de no-mutación y carrera. Fases 1–3. Architect-lead + Test-lead. |
+| AR-10 | Vocabularios de estados de identidad, matrícula, credencial y escalación tienen transiciones incompletas. | ACCEPT (alcance acotado) | Cerrar en Fase 1 las transiciones tocadas por las tres operaciones seleccionadas; dejar estados/schedulers ajenos al Módulo 1 como DEFERRED con dueño y vínculo a PRD. Architect-lead. |
+| AR-11 | Stack y metas NFR tienen valores incompatibles entre PRD, escenarios y arquitectura. | ACCEPT | Conservar como baseline heredado Python/FastAPI/SQLite WAL por ahora. No mezclar máximos incompatibles: la matriz NFR separará métrica, población, concurrencia, percentil y escenario de cada requisito. Si SQLite no alcanza el NFR formal, escalar decisión de migración; no declarar medición sin ejecutar benchmark. Architect-lead + Test-lead. |
+| AR-12 | Personas, identificadores y URNs de fixtures difieren; el caso obligatorio no es determinista aún. | ACCEPT | Crear fixture sintético canónico que tenga rol Student en CS101 y TA en CS-480; verificar contexto independientemente y usar el mismo usuario/IDs/URNs en contratos y ATDD. No copiar silenciosamente Mateo/Sofia de ejemplos contradictorios. Test-lead. |
+| AR-13 | La fórmula/orden del ledger y el enmascaramiento varían entre prosa y AD. | ACCEPT | Tratar `AD-04` como autoridad normativa; reconciliar la prosa y fijar serialización exacta en eventos/schema, sin inventar una segunda regla de hash. Architect-lead. |
+| AR-14 | Algunos estados UX no tienen contrato/DTO asociado y rutas de escalación/reautenticación/deep-link exceden las tres candidatas. | ACCEPT (común) / DEFER (flujo ajeno) | Para estados de permiso, roster y revocación, respaldar Loading/Empty/Error/Success/Denied con DTO/contrato. Los detalles exclusivos de escalación y deep-link se DEFERRED si no son requeridos por FR del Módulo 1; no borrar su trazabilidad PRD. Architect-lead + Test-lead. |
+
+## Triage del edge-case hunter
+
+| ID | Trigger / afirmación | Disposición propuesta | Resolución / fase y responsable |
+|---|---|---|---|
+| EC-01 | `resolve` concurrente con `revoke` durante propagación de caché podría autorizar con datos obsoletos. | ACCEPT | DB authoritative; versionar membresía o invalidar sin una cache mutable no transaccional. Añadir test de carrera que compruebe el estado final y el DENY posterior. Fases 1–3. |
+| EC-02 | El JSON propone que Mateo sea `Student` tanto en CS101 como en CS-480. | REJECT (esa aserción) | Es un error del reviewer: el seed exige Student en CS101 y TA de alta prioridad en CS-480; la propiedad que se prueba es independencia de contexto, no que ambas respuestas sean Student. Corregir en el contrato/test; conservar este rechazo como ejemplo en el AI decision log. Test-lead. |
+| EC-03 | `at == expires_at` para privilegio escalado. | ACCEPT | Adoptar, sujeto a confirmar contra AD-05, el borde exclusivo `[granted_at, expires_at)`; equality produce expired/DENY. Usar fake clock. Architect-lead + Test-lead. |
+| EC-04 | `at` ausente, malformado, futuro o sin zona horaria. | ACCEPT (validación); DEFER (visibilidad externa) | El dominio recibe instante UTC de Clock/fixture. Si `at` llega por API, validarlo como RFC 3339 con zona explícita; no permitir que el cliente retroceda el reloj de autorización. Definir typed error en Fase 1. Architect-lead. |
+| EC-05 | `userId` puede ser UUID, institutional ID o alias desconocido. | ACCEPT | Resolver alias solo en el adapter de identidad a una identidad canónica; el dominio opera con ID interno; unknown da resultado tipado fail-closed. Architect-lead. |
+| EC-06 | Variantes `CS-480`/`cs-480` y `CS101`/`cs101`. | ACCEPT | Normalizar course context en un solo boundary y comparar su forma canónica con el ARN; pruebas para variantes y entradas inválidas. Architect-lead + Test-lead. |
+| EC-07 | ARN malformado/reordenado; el hunter afirma además riesgo de path traversal. | ACCEPT (parser) | Probar gramática y rechazo de `.`/`/`/segmentos reordenados. RECHAZAR la consecuencia específica “path traversal pasa la regex” si la expresión vigente sigue excluyendo esos caracteres; no reproducirla como hecho sin un contraejemplo válido. Architect-lead. |
+| EC-08 | Resolver sin contexto o usuario sin materias. | ACCEPT | Typed DENY/estado Empty o Denied, sin excepción ni selección ambigua; cubrir `EDGE-01` y el DTO de explicación. Architect-lead + Test-lead. |
+| EC-09 | Identidad global `SUSPENDED`/`EXPELLED` con membresía activa. | ACCEPT | Fail closed antes de considerar la matrícula; una nueva ingestión no levanta sanciones globales. Contrato, guard y test. Architect-lead. |
+| EC-10 | Repetir `revokeCourseAccess` sobre matrícula ya `DROPPED`. | ACCEPT | Idempotente: no mutación ni evento redundante; devolver receipt estable según contrato. Test de retry/replay. Architect-lead + Test-lead. |
+| EC-11 | Revocar usuario/curso inexistente o matrícula no activa. | ACCEPT | Definir errores para not-found/invalid-transition y demostrar cero cambios en las entidades relacionadas. Architect-lead + Test-lead. |
+| EC-12 | Existen varias credenciales activas para la misma membresía. | ACCEPT | Revocar todas las credenciales activas del par identidad/curso en la misma transacción; verificar que no queda una autorizable. Architect-lead. |
+| EC-13 | Crash entre actualización DB, cache y flush de auditoría. | ACCEPT (reformular) | No asumir atomicidad entre DB y cache en memoria. DB/ledger en una transacción; quitar cache o usar versión/reconstrucción desde DB. Probar recuperación si existe durable queue. Architect-lead. |
+| EC-14 | Fila inválida/duplicada en lote, riesgo de parcialidad y manifiesto de rechazo ausente. | ACCEPT | Rollback total según AD-02; definir manifest estructurado sin dejar filas persistidas y conservar `row_number`/motivo. Test con fila 85 y estado final vacío/no parcial. Architect-lead + Test-lead. |
+| EC-15 | Batch vacío, >5 MB, >1000 filas, campos nulos y reingesta. | ACCEPT | Aplicar límites exactos del PRD antes de transacción; typed errors y no mutación. Definir idempotencia de reingesta en contrato. Architect-lead + Test-lead. |
+| EC-16 | Escritura `BEGIN IMMEDIATE` compite con tráfico de autorización de 100 req/s. | ACCEPT | Mantener transacciones de escritura acotadas y lecturas fail-closed; medir el NFR de concurrencia con carga nombrada. Si el baseline SQLite no alcanza el umbral formal, escalar cambio de DB; no asumir capacidad. Test-lead + Architect-lead. |
+
+## Resultado y siguiente paso
+
+El gap audit supera el mínimo de seis gaps: el review adversarial aportó 14 hallazgos y el edge-case hunter 16 casos. Se ejecutaron ambos slash commands BMad y se guardaron sus salidas crudas. El usuario confirmó la selección de las tres operaciones y el stack heredado. Las disposiciones individuales ACCEPT/DEFER/REJECT y los nombres de responsables todavía son propuestas, no decisiones de la pareja, y deben conservar ese estado en `ai-log/decision-log-solu2.md`. La corrección de EC-02 y la calificación de EC-07 deben conservarse como rechazos/correcciones explícitas del AI.
+
+**Próximo workflow:** con esta matriz como entrada, usar `/bmad-architecture` para producir contratos P/Q/I únicamente después de resolver en la revisión humana los puntos que cambian el comportamiento (firma canónica de resolver/revoke/roster, semántica de estado, error codes y qué del edge case pertenece a Módulo 1). No escribir lógica productiva.

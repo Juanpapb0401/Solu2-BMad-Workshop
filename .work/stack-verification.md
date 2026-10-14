@@ -1,0 +1,11 @@
+# Verificación externa del stack heredado
+
+Consultado el 12 de octubre de 2026 para BMad Architecture. El estudiante confirmó usar el stack Plan-2 heredado, sin migrar stack en esta iteración.
+
+- **Python 3.11+:** la guía oficial lista 3.11 en fase `security` hasta octubre de 2027. La arquitectura puede aceptar runtimes posteriores, pero el mínimo heredado 3.11 no debería convertirse en una obligación de desplegar una revisión 3.11 concreta sin revisar soporte. Fuente: https://devguide.python.org/versions/
+- **FastAPI 0.143.0:** PyPI publicó esta versión el 8 de octubre de 2026; sus metadatos declaran Python `>=3.10` y clasificadores para Python 3.11 y Pydantic 2. El tutorial oficial confirma que FastAPI no impone una librería de base de datos y documenta SQLite. Fuentes: https://pypi.org/project/fastapi/ y https://fastapi.tiangolo.com/tutorial/sql-databases/
+- **Pydantic 2.14.1:** PyPI indica publicación el 11 de octubre de 2026; la guía oficial llama a v2 la release de producción actual y documenta las migraciones desde v1. Fuentes: https://pypi.org/project/pydantic/ y https://docs.pydantic.dev/latest/migration/
+- **SQLAlchemy 2.0.54:** es la versión más reciente de la línea 2.0 observada en PyPI, publicada el 15 de septiembre de 2026. La línea 2.1.4 existe y es posterior, pero el usuario confirmó conservar 2.0; no se migra de línea en este taller. La documentación 2.0 incluye dialectos SQLite y PostgreSQL. Fuentes: https://pypi.org/project/SQLAlchemy/ y https://docs.sqlalchemy.org/en/20/
+- **SQLite WAL:** la documentación oficial confirma que lectores y escritor pueden avanzar a la vez, pero solo puede existir un writer; transacciones grandes, lecturas largas y WAL creciente afectan checkpoints y latencia. Esto concuerda con el baseline de writer único, pero no demuestra por sí solo que se cumplan los NFR de concurrencia o latencia; esos requieren benchmark. Fuente: https://www.sqlite.org/wal.html
+
+**Conclusión de ajuste:** el stack heredado es coherente para un scaffold headless y el modo WAL tiene el límite de un solo escritor esperado. No se certifica capacidad de 100 req/s ni se resuelven los NFR contradictorios; mantenerlos en el plan de evidencia y medirlos antes de una afirmación de cumplimiento.

@@ -1,0 +1,75 @@
+# generated: 2026-10-14
+# last_updated: 2026-10-14
+# project: Solu-2: University AI Compute Fabric, Module 1
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: solu2-module1/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog -> in-progress: Automatically when first story is created (via create-story)
+#   - in-progress -> done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# Action Item Status:
+#   - open: Committed during a retrospective, not yet addressed
+#   - in-progress: Actively being worked on
+#   - done: Completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - Retrospective appends its action items to action_items; sprint-status surfaces open ones
+# - Key convention: 'Story E<n>-S<m>' de epics.md -> '<n>-<m>-<titulo-kebab>' (regla de bmad-sprint-planning)
+
+generated: 2026-10-14
+last_updated: 2026-10-14
+project: "Solu-2: University AI Compute Fabric, Module 1"
+project_key: NOKEY
+tracking_system: file-system
+story_location: solu2-module1/implementation-artifacts
+
+development_status:
+  epic-1: backlog
+  1-1-el-prototipo-arranca-con-fixtures-y-adaptadores-simulados: backlog
+  1-2-mateo-obtiene-allow-de-inferencia-en-cs-480-con-evento-de-autorizacion: backlog
+  1-3-dra-elena-gomez-verifica-que-el-ledger-es-encadenado-y-append-only: backlog
+  epic-1-retrospective: optional
+  epic-2: backlog
+  2-1-dr-vance-registra-la-baja-de-mateo-en-cs-480-y-se-revocan-sus-credenciales-del-par: backlog
+  2-2-mateo-recibe-403-subject-enrollment-dropped-al-intentar-usar-cs-480-tras-la-baja: backlog
+  2-3-repetir-la-baja-no-duplica-efectos-y-un-fallo-del-almacen-cierra-el-acceso: backlog
+  2-4-solo-un-administrador-puede-dar-de-baja-403-admin-role-required-sin-mutacion: backlog
+  2-5-una-baja-con-datos-invalidos-membresia-suspendida-o-drop-reason-con-secreto-se-rechaza-sin-mutacion: backlog
+  epic-2-retrospective: optional
+  epic-3: backlog
+  3-1-dr-vance-carga-120-alumnos-de-cs-480-en-una-operacion-atomica: backlog
+  3-2-dr-vance-recibe-el-rechazo-completo-de-un-lote-con-correo-externo-en-la-fila-85-y-el-manifiesto-de-la-fila: backlog
+  3-3-dr-vance-no-puede-cambiar-el-rol-de-quien-ya-esta-en-cs-480-por-una-nomina: backlog
+  3-4-dr-vance-recibe-rechazos-de-limites-de-sintaxis-http-y-de-permisos-antes-de-que-se-toque-la-base: backlog
+  epic-3-retrospective: optional
+  epic-4: backlog
+  4-1-edge-01-sofia-estudiante-en-cs101-0-gpu-y-ta-en-cs-480-se-resuelve-por-contexto: backlog
+  4-2-sofia-su-escalacion-temporal-vence-en-el-instante-exacto-y-no-altera-cs101: backlog
+  4-3-sofia-intenta-usar-un-recurso-de-otro-contexto-y-recibe-un-deny-explicado-y-gramatica-arn-estricta: backlog
+  4-4-sofia-recibe-un-rechazo-tipado-y-sin-mutacion-cuando-la-solicitud-de-autorizacion-esta-mal-formada-o-no-cumple-la-regla-4: backlog
+  epic-4-retrospective: optional

@@ -1,0 +1,13 @@
+# requirements-dev.txt — Harness de pruebas del Módulo 1 (solo dev/test).
+# Stack confirmado: Python 3.11+, FastAPI, Pydantic v2, SQLAlchemy 2.0, SQLite WAL.
+# Pines exactos (reproducibilidad); FastAPI/Pydantic/SQLAlchemy alineados al spine.
+# Sin PostgreSQL, sin Playwright/Cypress, sin Pact (módulo headless/API, stack SQLite).
+pytest==8.3.4
+pytest-asyncio==0.24.0
+hypothesis==6.112.0
+pydantic==2.14.1
+sqlalchemy==2.0.54
+fastapi==0.143.0
+httpx==0.28.1
+pytest-cov==6.0.0
+pyyaml==6.0.3

@@ -1,0 +1,514 @@
+openapi: 3.1.0
+info:
+  title: Módulo 1 — User, Role, and Subject Access Manager
+  version: 1.0.0-phase2
+  description: >-
+    Fase 2 (ports/adapters + schemas). Tres operaciones canónicas (AD-09).
+    AD-01..AD-07 de planning/ARCHITECTURE.md son autoridad read-only.
+    Sincronizado con contracts + spine (R1–R11 + paquete estudiante 2026-10-13):
+    endpoint sin `at`, orden 401 AUTH_TOKEN_INVALID (R3-01) →400→403→404→403→403→403 con precedencias F-03,
+    codec cerrado (H-14/H-15), QueueReservation, roster/manifiesto/conteos,
+    UUID canónico, límites exactos, matriz v0 como dato (F-02).
+    Ronda 3 aplicada 2026-10-13 (G7-01 REJECT, G7-02 DEFER, R3-01..R3-06).
+    DEFERRED en spine; sin OPEN dentro de las tres operaciones. Fase 1 NO PASS
+    hasta Gate 6. Sin lógica productiva.
+servers:
+  - url: http://localhost:8000/api/v1
+paths:
+  /authorize:
+    post:
+      operationId: resolveEffectivePermissions
+      summary: Resolver permiso efectivo en un contexto (AD-01/AD-10/AD-13)
+      parameters:
+        - name: X-Academic-Subject-Context
+          in: header
+          required: true
+          schema:
+            type: string
+            examples: [CS-480]
+          description: >-
+            courseId declarado. Comparación cruda byte-a-byte con el subject del ARN,
+            sin normalización (AD-01). Obligatorio solo en /authorize. Repetido o
+            vacío = ausente hacia SUBJECT_CONTEXT_MISSING_OR_UNAUTHORIZED; valor del
+            parser sin más normalización [ADOPTED 2026-10-13, estudiante] (H-24).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorizeRequest'
+      responses:
+        '200':
+          description: ALLOW con explicación citada (AD-11). Todo DENY de política es 403 DenyBody.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedOpen'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /subjects/{subject_id}/enrollments/{student_id}/drop:
+    post:
+      operationId: revokeCourseAccess
+      summary: Baja y revocación sub-minuto (AD-03/AD-12)
+      description: >-
+        Solo rol institucional admin (Ronda 6 Q1 [ADOPTED 2026-10-13]): otro actor autenticado → 403 ADMIN_ROLE_REQUIRED, después del 401 y antes de la sintaxis.
+        Path params subject_id/student_id son la fuente canónica.
+        Sin gramática extra: segmento exacto o 404 UNKNOWN_COURSE
+        [ADOPTED 2026-10-13, estudiante] (H-18).
+      parameters:
+        - name: subject_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Autoridad del curso en revoke (ver ports-and-adapters.md §3).
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevokeRequest'
+      responses:
+        '200':
+          description: REVOKED primera vez; ALREADY_REVOKED en repetición sin mutación ni evento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokeResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedOpen'
+        '403':
+          $ref: '#/components/responses/ForbiddenAdminRole'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /subjects/{subject_id}/roster:
+    post:
+      operationId: ingestRoster
+      summary: Ingestión atómica de nómina (AD-02/AD-12)
+      description: >-
+        Solo rol institucional admin (Ronda 6 Q1 [ADOPTED 2026-10-13]): otro actor autenticado → 403 ADMIN_ROLE_REQUIRED, después del 401 y antes de la sintaxis.
+        Matriz de canal para term (contrato, contracts R3): JSON requiere term en
+        el body y prohíbe term en query; CSV multipart requiere term en query y
+        prohíbe term en el body; canal ausente, extra, duplicado o discrepante
+        produce MALFORMED_TERM 400. Brecha de contrato/prueba: la especificación
+        OpenAPI no puede imponer completamente esta condición entre Content-Type y
+        query (required false en el parámetro query y multipart sin campo term);
+        la matriz vive en el contrato y debe cubrirse con pruebas, no solo con
+        validación del schema. `term` con decode-once RFC 3986 y comparación exacta
+        (H-18) [ADOPTED 2026-10-13, estudiante]; path con segmento exacto o 404.
+        Precedencia de sintaxis [ADOPTED 2026-10-13, estudiante] (G9-02): 413
+        BATCH_TOO_LARGE antes de parsear; luego MALFORMED_TERM > MALFORMED_BATCH >
+        BATCH_EMPTY; el primer código fija el HTTP y rule_ids los lista en ese orden.
+      parameters:
+        - name: subject_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Autoridad del curso; el subject_id del path manda (ver RosterIngestRequest.subject_id).
+        - name: term
+          in: query
+          required: false
+          schema:
+            type: string
+            examples: [2026-FALL]
+          description: Solo para CSV multipart (en JSON va en el body). Decode-once RFC 3986 y comparación exacta (H-18). Ausente/tipo/vacío/canal/duplicado/discrepante hacia siempre MALFORMED_TERM 400, case-sensitive exacto. La exclusión por canal es contractual; OpenAPI no la impone por máquina (ver description de la operación).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RosterIngestRequest'
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: CSV columnas institutional_id,email,full_name,assigned_role; 1-1000 filas de datos, <=5.000.000 bytes del body recibido, UTF-8 sin BOM (ECF-19); RFC 4180 con exactamente 4 campos por fila (ECF-20); exactamente una parte file (ECF-22); otro Content-Type → MALFORMED_BATCH 400 (ECF-21) [ADOPTED 2026-10-13]
+      responses:
+        '201':
+          description: Lote comprometido todo o nada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RosterIngestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/UnauthorizedOpen'
+        '403':
+          $ref: '#/components/responses/ForbiddenAdminRole'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '413':
+          $ref: '#/components/responses/TooLarge'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '500':
+          $ref: '#/components/responses/Internal'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+components:
+  schemas:
+    AuthorizeRequest:
+      type: object
+      required: [user_id, resource_arn, action]
+      description: Sin `at` en el endpoint público; el adapter captura Clock.now() una vez (request_now). `at` solo interno/test/replay.
+      properties:
+        user_id:
+          type: string
+          examples: [TA-SOFIA-01]
+          description: UUID canónico 8-4-4-4-12 (hex normalizado a minúsculas) o institutional_id exacto; sin whitespace. Sin patrón inventado en este schema; validación en boundary y dominio.
+        resource_arn:
+          type: string
+          pattern: '^urn:uai:subject:[a-zA-Z0-9_-]+:model:[a-zA-Z0-9_-]+$'
+        action:
+          type: string
+          enum: [inference, training]
+          examples: [inference]
+          description: Gramática cerrada (Ronda 6 Q5) [ADOPTED 2026-10-13]. Otro valor o vacío → 400 MALFORMED_ACTION.
+    AuthorizeResponse:
+      type: object
+      required: [decision, effective_role, explanation]
+      properties:
+        decision:
+          type: string
+          enum: [ALLOW]
+          description: Solo ALLOW en 200; todo DENY de política es 403 DenyBody (PRD §5.2, ARCH §4.2/AD-01).
+        effective_role:
+          type: string
+          description: Identificador exacto de roles.id en el DDL, sin transformar [ADOPTED 2026-10-13, estudiante] (H-26).
+        explanation:
+          $ref: '#/components/schemas/ExplanationDTO'
+    DenyBody:
+      type: object
+      required: [type, title, status, detail, instance, code, decision, explanation]
+      description: 403 DENY de política RFC-7807 con decisión DENY y ExplanationDTO obligatoria (PRD §5.2, ARCH §4.2/AD-01, AD-11).
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+          enum: [403]
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          type: string
+          enum: [RESOURCE_SUBJECT_MISMATCH,
+            SUBJECT_CONTEXT_MISSING_OR_UNAUTHORIZED, SUBJECT_ENROLLMENT_DROPPED,
+            IDENTITY_BARRED, UNAUTHORIZED_RESOURCE_CLASS, STATUS_ESCALATION_EXPIRED,
+            ESCALATION_REQUEST_REJECTED, FORBIDDEN_SELF_APPROVAL]
+        decision:
+          type: string
+          enum: [DENY]
+        explanation:
+          $ref: '#/components/schemas/ExplanationDTO'
+    RevokeRequest:
+      type: object
+      required: [drop_reason, timestamp]
+      description: Body {drop_reason, timestamp} (F-05 + R3-02). timestamp RFC 3339 UTC informativo (gramática R4-01/G9-01); instante efectivo del Clock. Ausente o fuera de la gramática hacia 400 MALFORMED_DROP_TIMESTAMP [ADOPTED 2026-10-13, estudiante].
+      properties:
+        drop_reason:
+          type: string
+          minLength: 1
+          maxLength: 280
+          description: 1-280 puntos de código Unicode; blancos por str.isspace() (solo-espacios inválida); secreto uai_live_… se enmascara, AD-06 gana sobre intacto [ADOPTED 2026-10-13, estudiante] (H-19). minLength no hace cumplir blancos ni máscara (documentado).
+        timestamp:
+          type: string
+          examples: ['2026-09-23T15:04:05.120000Z']
+          pattern: '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?(Z|\+00:00)$'
+          description: Fecha académica RFC 3339 con zona UTC obligatoria (informativa). Más de 300 s posterior a request_now → 400 MALFORMED_DROP_TIMESTAMP (Q6, ECF-13) [ADOPTED 2026-10-13]. Regex de G9-01 [ADOPTED 2026-10-13, estudiante]; además debe ser fecha-hora de calendario válida (segundo 60 y fecha inexistente → 400; la regex no lo valida); solo T y Z en mayúsculas; -00:00 → 400; fracción >6 dígitos → 400 sin truncar. Se persiste normalizada a YYYY-MM-DDTHH:MM:SS.ffffffZ; instante efectivo del Clock. Ausente o fuera de esa gramática hacia 400 MALFORMED_DROP_TIMESTAMP (R3-02, R4-01, G9-01).
+    RevokeResponse:
+      type: object
+      required: [student_id, subject_id, status, revocation_propagated_at, explanation]
+      properties:
+        student_id:
+          type: string
+        subject_id:
+          type: string
+        status:
+          type: string
+          enum: [REVOKED, ALREADY_REVOKED]
+        revocation_propagated_at:
+          type: string
+          description: Canónico; alias histórico revoked_at. Replay ALREADY_REVOKED conserva el original e incluye ExplanationDTO (AD-03).
+        explanation:
+          $ref: '#/components/schemas/ExplanationDTO'
+    RosterIngestRequest:
+      type: object
+      required: [subject_id, term, rows]
+      description: subject_id del path es la autoridad; el subject_id del body, si difiere, se rechaza con MALFORMED_BATCH 400 según contrato. Formato de IDs y email sin patrones inventados en este schema; validación en boundary y dominio, pendiente lo no definido por una fuente.
+      properties:
+        subject_id:
+          type: string
+          examples: [CS-480]
+          description: Eco del path; el path es la autoridad. Si difiere del path hacia MALFORMED_BATCH 400 según contrato.
+        term:
+          type: string
+          pattern: '^[0-9]{4}-(SPRING|SUMMER|FALL)$'
+          examples: [2026-FALL]
+          description: Solo en body para JSON (en CSV va en query); decode-once RFC 3986 y case-sensitive exacto (H-18); error siempre MALFORMED_TERM 400. La exclusión por canal es contractual y OpenAPI no la impone por máquina.
+        rows:
+          type: array
+          minItems: 1
+          maxItems: 1000
+          items:
+            $ref: '#/components/schemas/RosterRow'
+    RosterRow:
+      type: object
+      required: [institutional_id, email, full_name, assigned_role]
+      description: Formato de IDs y email sin patrones inventados en este schema; validación en boundary y dominio según contracts §3, pendiente lo no definido por una fuente.
+      properties:
+        institutional_id:
+          type: string
+          pattern: '^[A-Za-z0-9-]{1,64}$'
+          description: Q7 (ADVF-21) [ADOPTED 2026-10-13]. Comparación exacta case-sensitive.
+        email:
+          type: string
+          description: Exactamente un '@' y dominio exacto universidad.edu (ECF-07); dominio sin distinguir mayúsculas/minúsculas, resto intacto. Vacío o en blanco → ROSTER_VALIDATION_FAILED sobre email (ECF-17).
+        full_name:
+          type: string
+        assigned_role:
+          type: string
+          enum: [student, ta]
+    RosterIngestResponse:
+      type: object
+      description: 201 de ingesta [ADOPTED 2026-10-14, estudiante] (R8-02) sin ExplanationDTO; un éxito de mutación se describe con conteos. Sin uai_live_ en la respuesta (R8-01).
+      required: [processed, created_identities, updated_memberships, batch_id]
+      properties:
+        processed:
+          type: integer
+        created_identities:
+          type: integer
+        updated_memberships:
+          type: integer
+        batch_id:
+          type: string
+          examples: [roster-8f3ab12c-2026-FALL]
+    ExplanationDTO:
+      type: object
+      required: [rule_ids]
+      description: Decisión explicable con regla citada. rule_ids con TODAS las violadas ordenadas (primero = code principal); observados solo de esas reglas [ADOPTED 2026-10-13, estudiante] (H-23).
+      properties:
+        rule_ids:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        observed_role:
+          type: ['string', 'null']
+        observed_context:
+          type: ['string', 'null']
+        observed_resource_subject:
+          type: ['string', 'null']
+        observed_prior_status:
+          type: ['string', 'null']
+        observed_credentials_revoked:
+          type: ['integer', 'null']
+        observed_invalid_row:
+          type: ['integer', 'null']
+        threshold:
+          type: string
+          description: Opcional (G9-03) [ADOPTED 2026-10-13, estudiante]; ausente se omite, nunca nulo.
+        action_hint:
+          type: ['string', 'null']
+    ErrorBody:
+      type: object
+      required: [type, title, status, detail, instance, code]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          type: string
+          enum: [AUTH_TOKEN_INVALID, ADMIN_ROLE_REQUIRED, UNKNOWN_IDENTITY, UNKNOWN_COURSE, MEMBERSHIP_NOT_FOUND, INVALID_AT,
+            MALFORMED_RESOURCE_ARN, MALFORMED_ACTION, MALFORMED_TERM, MALFORMED_BATCH, BATCH_EMPTY,
+            BATCH_TOO_LARGE, MALFORMED_DROP_REASON, MALFORMED_DROP_TIMESTAMP, RESOURCE_SUBJECT_MISMATCH,
+            SUBJECT_CONTEXT_MISSING_OR_UNAUTHORIZED, SUBJECT_ENROLLMENT_DROPPED,
+            IDENTITY_BARRED, UNAUTHORIZED_RESOURCE_CLASS, STATUS_ESCALATION_EXPIRED,
+            ESCALATION_REQUEST_REJECTED, FORBIDDEN_SELF_APPROVAL, INVALID_TRANSITION,
+            CONCURRENT_ESCALATION_NOT_PERMITTED, ROSTER_VALIDATION_FAILED,
+            INTRA_BATCH_DUPLICATE_ID, AUTH_INTERNAL_POLICY_UNAVAILABLE,
+            AUDIT_LOG_TAMPERING_DETECTED]
+          description: Catálogo contracts §4 (28 códigos tras R3-01/R3-02 y Ronda 6 Q1/Q5). 403 ADMIN_ROLE_REQUIRED (Q1) y 400 MALFORMED_ACTION (Q5) [ADOPTED 2026-10-13]. 401 con AUTH_TOKEN_INVALID (token ausente, inválido o expirado, PRD:255) [ADOPTED 2026-10-13, estudiante]; 500 emitido por verificación/exportación fuera de las tres ops (pendiente).
+        rule_ids:
+          type: array
+          items:
+            type: string
+          description: Opcional [ADOPTED 2026-10-13, estudiante] (R4-02; G9-03 omitido, nunca nulo). Reglas de sintaxis violadas en la misma petición, ordenadas por precedencia (primero == code); presente solo si falla más de una regla de sintaxis. Sin ExplanationDTO en 400.
+    RosterRejectedManifestRow:
+      type: object
+      required: [row_number, field, expected]
+      description: Fila del manifiesto de rechazo (dto.py RosterRejectedManifestRow).
+      properties:
+        row_number:
+          type: integer
+        institutional_id:
+          type: ['string', 'null']
+        field:
+          type: string
+        observed:
+          type: ['string', 'null']
+        expected:
+          type: string
+        rule_ids:
+          type: array
+          items:
+            type: string
+          description: Opcional (R8-09) [ADOPTED 2026-10-14, estudiante]. Ej. email fuera de universidad.edu → ["ROSTER_VALIDATION_FAILED", "EMAIL_DOMAIN_MUST_BE_INSTITUTIONAL"] (código UX del banner; code HTTP sigue ROSTER_VALIDATION_FAILED). Omitido si no aplica.
+    RosterRejectedManifest:
+      type: object
+      required: [type, title, status, detail, instance, code, errors, batch_id, explanation, processed, created_identities, updated_memberships]
+      description: >-
+        422 JSON con manifiesto embebido (contracts §3-Q3, dto.py RosterRejectedManifest): processed,
+        created_identities y updated_memberships en 0 por contrato, batch_id, manifiesto
+        ordenado por (fila, columna) y explicación. Precedencia de código:
+        ROSTER_VALIDATION_FAILED, si no INTRA_BATCH_DUPLICATE_ID. IDENTITY_BARRED
+        va solo en rule_ids de la fila identity_status (R9-01 [ADOPTED 2026-10-14, estudiante]). Anexo CSV del evento:
+        roster_rejected_conflicts.csv (row_number, institutional_id, field,
+        observed, expected), en el evento roster.rejected, no por negociación.
+        Cuerpo 422 siempre application/problem+json, sea el input JSON o CSV; se ignora Accept (R3-05) [ADOPTED 2026-10-13, estudiante].
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+          enum: [422]
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          type: string
+          enum: [ROSTER_VALIDATION_FAILED, INTRA_BATCH_DUPLICATE_ID]
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/RosterRejectedManifestRow'
+        batch_id:
+          type: string
+          examples: [roster-8f3ab12c-2026-FALL]
+          description: Identificador del intento rechazado (pre-validación de filas).
+        explanation:
+          $ref: '#/components/schemas/ExplanationDTO'
+        processed:
+          type: integer
+          examples: [0]
+          description: En 0 por contrato en el rechazo; el schema no impone el cero por máquina.
+        created_identities:
+          type: integer
+          examples: [0]
+          description: En 0 por contrato en el rechazo; el schema no impone el cero por máquina.
+        updated_memberships:
+          type: integer
+          examples: [0]
+          description: En 0 por contrato en el rechazo; el schema no impone el cero por máquina.
+  responses:
+    BadRequest:
+      description: 400 — INVALID_AT / MALFORMED_* (no reintentable)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+    UnauthorizedOpen:
+      description: >-
+        401 — Bearer ausente/inválido/vencido con AUTH_TOKEN_INVALID, validado primero (orden contracts
+        §1, R3-01) [ADOPTED 2026-10-13, estudiante].
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+    Forbidden:
+      description: 403 DENY de política con decision DENY + ExplanationDTO obligatoria (DenyBody; PRD §5.2, ARCH §4.2/AD-01, AD-11). Sin matriz explícita → UNAUTHORIZED_RESOURCE_CLASS; tras revocación → SUBJECT_ENROLLMENT_DROPPED.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DenyBody'
+    ForbiddenAdminRole:
+      description: >-
+        403 ADMIN_ROLE_REQUIRED [ADOPTED 2026-10-13, Ronda 6 Q1] — actor autenticado sin rol
+        institucional admin (revoke/ingest). ErrorBody sin ExplanationDTO; no reintentable;
+        sin mutación ni evento; evaluado después del 401 y antes de la sintaxis.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+    NotFound:
+      description: 404 — UNKNOWN_IDENTITY / UNKNOWN_COURSE / MEMBERSHIP_NOT_FOUND
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+    Conflict:
+      description: 409 — INVALID_TRANSITION / CONCURRENT_ESCALATION_NOT_PERMITTED
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+    TooLarge:
+      description: 413 — BATCH_TOO_LARGE (más de 5.000.000 bytes recibidos o 1000 filas de datos, antes de validar filas)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+    Unprocessable:
+      description: >-
+        422 con manifiesto JSON ordenado más ceros más batch_id más explicación y evento
+        roster.rejected en la misma cadena tras rollback (cola no acepta hacia 503).
+        Cuerpo siempre application/problem+json, sea el input JSON o CSV; se ignora Accept (R3-05).
+        El anexo roster_rejected_conflicts.csv (row_number, institutional_id, field, observed, expected)
+        viaja en el evento roster.rejected, no por negociación de contenido.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/RosterRejectedManifest'
+    Internal:
+      description: 500 — AUDIT_LOG_TAMPERING_DETECTED con envelope ErrorBody sin ExplanationDTO (F-06); verificación de cadena rota; emisor fuera de las tres ops, pendiente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+    Unavailable:
+      description: 503 — AUTH_INTERNAL_POLICY_UNAVAILABLE fail-closed reintentable (fallo del store, cola llena (QueueReservation), busy_timeout agotado, evento requerido no aceptado, fallo de Clock o IdGenerator (R12-B01), colisión de batch_id tras 3 reintentos (F-04))
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'

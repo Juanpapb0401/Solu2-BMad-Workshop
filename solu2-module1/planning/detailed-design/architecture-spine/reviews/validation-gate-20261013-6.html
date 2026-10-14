@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"><title>Reviewer Gate 6 — Paquete estudiante F/H (2026-10-13)</title></head>
+<body>
+<h1>Reviewer Gate 6 — Paquete estudiante F/H (2026-10-13)</h1>
+<p><strong>Veredicto oficial: NO PASS (CONDITIONAL — 19/19 cierres F/H verificados; 2 esquinas nuevas G6-01/G6-02 a triage).</strong></p>
+<table border="1">
+<tr><th>Lente</th><th>Veredicto</th><th>Reporte</th></tr>
+<tr><td>Lint determinista</td><td><code>ok:false</code> — 3 <code>low</code> conocidos</td><td><code>review-lint-20261013-6.json</code></td></tr>
+<tr><td>Rubric walker</td><td><strong>CONDITIONAL</strong></td><td><code>review-rubric-20261013-6.md</code></td></tr>
+<tr><td>Web-verification</td><td><strong>PASS</strong></td><td><code>review-web-verification-20261013-6.md</code></td></tr>
+<tr><td>Adversarial</td><td><strong>NO ROBUSTO (2 nuevos G6-01/G6-02)</strong></td><td><code>review-adversarial-20261013-6.md</code></td></tr>
+</table>
+<h2>Hallazgos nuevos</h2>
+<ul>
+<li><strong>G6-01 (media-baja):</strong> replay vs ticket REVOKED — "revoked_at" sin columna en DDL; rol base vs escalado según unidad.</li>
+<li><strong>G6-02 (baja-media):</strong> evento del scheduler tras crash — frontera tx sin fijar; 1 vs 0 eventos.</li>
+</ul>
+<h2>Validaciones ejecutadas</h2>
+<ul>
+<li>lint_spine.py → 3 <code>low</code> conocidos.</li>
+<li>dto import → exit 0.</li>
+<li>DDL sqlite3 :memory: → 10 tablas, 0 triggers.</li>
+<li>roles_matrix.v0.json → v0, 3 filas.</li>
+<li>pytest → 4 passed.</li>
+</ul>
+<p>Gates 4/5 intactos. Sin TEA, sin bmad-build, sin lógica productiva.</p>
+</body>
+</html>
