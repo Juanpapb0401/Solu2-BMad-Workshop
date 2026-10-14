@@ -9,7 +9,7 @@ Este directorio es una copia aislada de `Plan-2: Task Statement` preparada para 
 - La única fuente de Plan-2 que se permite actualizar en esta copia es `planning/ARCHITECTURE.md`, con decisiones aprobadas de stack en Fase 0 y enlaces v2 en Fase 5.
 - Excepción (2026-10-14, autorizada por el estudiante A): la consigna permite actualizar fuentes Plan-2 "only via triaged findings" (paquete de entrega, `prd.md`). En esta copia se pueden corregir `planning/*`, `ux/*` y `ux/C-UX-Scenarios/*` SOLO para aplicar un hallazgo triageado y aprobado, con una nota en línea `[ACTUALIZADO <fecha>, Solu-2 <ID de hallazgo>]` y su entrada en `solu2-module1/ai-log/decision-log-solu2.md`. El Plan-2 original (`../Plan-2-Task Statement`) nunca se modifica.
 - Escribe los entregables de Solu-2 únicamente bajo `solu2-module1/`.
-- No escribas, publiques, hagas push, commits ni tags sin instrucción explícita del estudiante. Este workspace todavía no tiene repositorio Git.
+- No escribas, publiques, hagas push, commits ni tags sin instrucción explícita del estudiante. Repositorio Git local creado el 2026-10-14 por instrucción del estudiante (tag `solu2-ready`).
 
 ## Reglas del taller
 - Ejecuta los slash commands BMad instalados aquí; no afirmes que un workflow corrió si OpenCode no lo ejecutó y no hay salida/evidencia.

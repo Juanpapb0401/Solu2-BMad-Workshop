@@ -2,16 +2,18 @@
 
 Módulo 1 (User, Role, and Subject Access Manager) del taller Solu-2. Alcance: las tres operaciones del Annex A (p. 13) — `resolveEffectivePermissions(userId, courseId, at)`, `revokeCourseAccess(userId, courseId)` e `ingestRoster(batch)`.
 
-**Estado:** stop-point de solutioning. Hay diseño, contratos, pruebas ATDD intencionalmente RED e interfaces/stubs. No hay lógica productiva (`app/application/module1.py` y los adaptadores lanzan `NotImplementedError`). No se ejecutó `bmad-build` ni `bmad-build-auto`. Ningún NFR está `EVIDENCED`. El proyecto no tiene repositorio Git.
+**Estado:** stop-point de solutioning. Hay diseño, contratos, pruebas ATDD intencionalmente RED e interfaces/stubs. No hay lógica productiva (`app/application/module1.py` y los adaptadores lanzan `NotImplementedError`). No se ejecutó `bmad-build` ni `bmad-build-auto`. Ningún NFR está `EVIDENCED`. Repositorio Git local con el tag `solu2-ready`.
 
-Rutas relativas a `solu2-module1/` salvo indicación. Las de Plan-2 se citan como `../planning/...`.
+Rutas relativas a `solu2-module1/`. Todo el paquete está bajo esta carpeta.
+
+> **Ojo:** `../planning/readiness-gate-report.md` (raíz del repo) es el informe **del Plan-2**, no de Solu-2. El readiness gate de Solu-2 es `planning/readiness-gate-report.md` (dentro de `solu2-module1/`).
 
 ## Índice de entrega (paquete sugerido, consigna pág. 11)
 
 | Ítem de la consigna | Ruta en esta entrega | Nota |
 |---|---|---|
-| `planning/prd.md` | `../planning/prd.md` | Fuente Plan-2, sin editar salvo hallazgos triageados. |
-| `ARCHITECTURE.md` (v2) | `../planning/ARCHITECTURE.md` | v2 con Stack Decisions y enlaces v2. AD-01..AD-07 intactos. |
+| `planning/prd.md` | `planning/prd.md` | Copia de entrega de `../planning/prd.md` (fuente Plan-2, sin editar salvo hallazgos triageados). |
+| `ARCHITECTURE.md` (v2) | `planning/ARCHITECTURE.md` | Copia de entrega de `../planning/ARCHITECTURE.md`: v2 con Stack Decisions y enlaces v2. AD-01..AD-07 intactos. |
 | `detailed-design/contracts.md` | `planning/detailed-design/contracts.md` | P/Q/I de las tres operaciones. |
 | `detailed-design/ports-and-adapters.md` | `planning/detailed-design/ports-and-adapters.md` | Cada componente una vez, con etiqueta de capa. |
 | `schemas/001_module1_schema.sql` | `planning/detailed-design/schemas/001_module1_schema.sql` | DDL SQLite (renombrado desde `001_module1.sql`). |
