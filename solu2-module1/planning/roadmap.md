@@ -2,7 +2,7 @@
 
 **Proyecto:** University AI Compute Fabric, Módulo 1: User, Role, and Subject Access Manager  
 **Actualizado:** 14 de octubre de 2026  
-**Estado general:** **Fases 0–4 ejecutadas con evidencia; Fase 5 (cierre) en curso.** Fase 1 no se marca como PASS: el último Reviewer Gate de arquitectura es CONDITIONAL. El gate de TEA trace es FAIL por diseño (cobertura ejecutada 0% en RED). El readiness de la corrida 9 es READY (≡ PASS). El sign-off de B está pendiente. Ningún NFR está EVIDENCED.
+**Estado general:** **Fases 0–4 ejecutadas con evidencia; Fase 5 (cierre) completa.** Fase 1 no se marca como PASS: el último Reviewer Gate de arquitectura es CONDITIONAL. El gate de TEA trace es FAIL por diseño (cobertura ejecutada 0% en RED). El readiness de la corrida 9 es READY (≡ PASS). El sign-off de B está pendiente. Ningún NFR está EVIDENCED.
 
 ## Vista rápida
 
@@ -13,7 +13,7 @@
 | 2. Diseño detallado | Completa con triage final | Review final: 55 hallazgos → 42 ACCEPT / 6 DEFER / 7 REJECT, aplicados. Artefactos sincronizados. |
 | 3. TEA y preparación de pruebas | Completa; gate trace FAIL por diseño | 155 nodos (130 ATDD RED + 21 guardas + 4 harness). Test review 100/100. NFR en PLANNED. |
 | 4. Épicas, historias y sprint | Completa | 4 épicas, 16 historias, readiness READY (corrida 9), `sprint-status.yaml` generado, Gate Drill superado. |
-| 5. Wrap-up y entrega | En curso | ARCHITECTURE v2, decision log con resumen, README de entrega y renombre del DDL hechos. Falta sign-off de B y cierre formal del triage. |
+| 5. Wrap-up y entrega | Hecho | ARCHITECTURE v2, decision log con resumen, README de entrega y renombre del DDL hechos. Sign-off de A y B el 2026-10-14. |
 
 **Leyenda:** Hecho = hay artefacto/evidencia; Parcial = hay artefacto pero falta una condición; Pendiente = todavía no se ha completado en este workspace.
 
@@ -87,7 +87,7 @@
 - [ ] Triage cerrado: los ACCEPT tienen artefacto; los DEFER (6) y los REJECT (7) están en `planning/detailed-design/reviews/review-detailed-design.md`. Falta asignar responsable o fase a cada DEFER en la entrega.
 - [x] `../planning/ARCHITECTURE.md` a v2 con Stack Decisions y enlaces a los artefactos finales. El Plan-2 original no se modificó. Evidencia: `../planning/ARCHITECTURE.md`.
 - [x] Paquete de entrega e índice de rutas. Evidencia: `README.md`.
-- [ ] Revisión de integridad: renombre del DDL y referencias vigentes actualizados; `pytest` y `quality_gate.sh` verdes. Falta sign-off de B (Daniel Gonzalez).
+- [x] Revisión de integridad: renombre del DDL y referencias vigentes actualizados; `pytest` y `quality_gate.sh` verdes. Sign-off de A y B (2026-10-14).
 - [ ] Preparar la entrega del taller (documento final para el estudiante).
 - [ ] Commit/tag solo si el usuario lo pide explícitamente y hay un repositorio de clase autorizado. Hoy este workspace no tiene Git.
 

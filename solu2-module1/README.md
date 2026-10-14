@@ -56,14 +56,13 @@ Resultado vigente: `pytest -q` → 25 passed, 130 xfailed (155 nodos: 130 ATDD R
 | TEA test review | **Approve with Comments**, 100/100 (Re-revisión 3). Queda abierto L1 (Low, tamaño de archivo). | `test/test-review.md` |
 | NFR | Los 7 NFR de `prd.md` §6, la fila DEFERRED de cola y G7-02 están en **PLANNED**. Ninguno EVIDENCED. | `test/nfr-evidence.md` |
 | Readiness (`bmad-check-implementation-readiness`) | Corrida 1: NOT READY. Corridas 2–8: NEEDS WORK (CONCERNS). Corrida 9: **READY (≡ PASS)**. | `planning/readiness-gate-report.md` |
-| Sign-off del arquitecto | A — Juan Pablo Parra: aprobación delegada explícitamente a la ejecución autónoma (2026-10-13/14). B — Daniel Gonzalez: **pendiente** de revisión presencial. | `planning/readiness-gate-report.md` (sección Sign-off) |
+| Sign-off del arquitecto | A — Juan Pablo Parra y B — Daniel Gonzalez: **aprobado** el 2026-10-14, tras revisión conjunta de todas las decisiones. | `planning/readiness-gate-report.md` (sección Sign-off) |
 | Gate Drill | Se eliminó el binding de E4-S1 → NEEDS WORK; el gate detectó AD-01, AD-09 y AD-10 (PROBLEMAS = 6). Se restauró con `bmad-create-epics-and-stories` → READY. Duración ~1.2 min. Hashes iguales (sha256 del original y del restaurado). | `test/evidence/gate-drill.md` |
 | Sprint status | `sprint-status.yaml` con 24 entradas (4 épicas, 16 historias, 4 retros), todas en `backlog`. YAML válido. | `implementation-artifacts/sprint-status.yaml` |
 
 ## Límites conocidos
 
-- Sin repositorio Git y sin CI activo: `test/ci/quality-gate.yml` es una plantilla que no se ha ejecutado en plataforma.
+- Sin CI activo (repositorio Git local): `test/ci/quality-gate.yml` es una plantilla que no se ha ejecutado en plataforma.
 - Sin mediciones NFR: todos `PLANNED`.
 - Sin lógica productiva. La suite ATDD queda en RED hasta que se implemente.
 - Pendiente de decisión externa: matriz completa `roles_matrix` (equipo fuente de políticas), TTL de `uai_live_` y capacidad de cola (DEFER a NFR, responsable B).
-- Sign-off de B pendiente.

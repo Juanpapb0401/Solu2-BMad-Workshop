@@ -6,6 +6,26 @@ lastSaved: '2026-10-14'
 inputDocuments: ['solu2-module1/test/atdd/module1_contracts.test.py', 'solu2-module1/test/atdd/module1_guard_contracts.test.py', 'solu2-module1/test/conftest.py', 'solu2-module1/test/atdd/conftest.py', 'solu2-module1/test/fakes/world.py', 'solu2-module1/test/fakes/fake_queue.py', 'solu2-module1/test/fakes/fake_token_verifier.py', 'solu2-module1/test/test-design.md', 'solu2-module1/planning/detailed-design/contracts.md', 'solu2-module1/test/atdd-checklist.md']
 ---
 
+> **Estado final (Re-revisión 3, 2026-10-14): 100/100 (A), Approve with Comments.** El cuerpo de abajo es la revisión original (79/100) con sus re-revisiones; las marcas `[SUPERADO ...]` indican lo que se corrigió después.
+>
+> **Triage de hallazgos** (revisado y aprobado por A y B, 2026-10-14; B = Test-lead):
+>
+> | Hallazgo | Severidad | Decisión | Razón | Dónde se ve el cambio |
+> |---|---|---|---|---|
+> | H5 archivo de 1185 líneas | High | ACCEPT | Dificulta revisar y mantener la suite | Suite dividida por operación (`test/atdd/module1_{resolve,revoke,ingest,ingest_rules,guard}_contracts.test.py`) |
+> | M4 tests sin agrupar (contratos y guards) | Medium | ACCEPT | Agrupar por categoría hace legible la cobertura | Clases `TestHappyPath`, `TestEdge01`, `TestDDLGuards`, `TestDomainPurity`… |
+> | L6 literal `3_600_000_000` | Low | ACCEPT | Literal mágico sin significado | Constantes con nombre en `test/atdd/atdd_support.py` |
+> | Riesgo 1: conexión sqlite compartida entre hilos | Riesgo GREEN | ACCEPT | Fallaría por causa distinta de `NotImplementedError` | Conexión por hilo + barrier en T-CON-01 |
+> | Riesgo 2: 422 sin conteo de tablas | Riesgo | ACCEPT | Rollback total (AD-02) exige probar no-efectos | `assert_no_writes` en intra-batch, T-ROS-03 y T-ROS-03b |
+> | Riesgo 3: secreto en lote de ingesta | Riesgo | ACCEPT | AD-06 aplica también a ingesta | Test R-006 de ingesta |
+> | H-N1 `_decision_of` sin definir | High | ACCEPT | NameError rompería el RED | `decision_of` importado de `atdd_support` |
+> | M-N1 fake con código 401 de catálogo | Medium | ACCEPT | El fake no debe conocer el contrato HTTP | `test/fakes/fake_token_verifier.py` lanza `InvalidTokenError` |
+> | M-N2 T-ROS-03 sin cuatro tablas ni `roster.rejected` | Medium | ACCEPT | Mismo motivo que Riesgo 2 | `assert_no_writes` en T-ROS-03 |
+> | L2 contador de módulo `_seq` | Low | ACCEPT | Estado compartido entre tests | `_id` por tabla en `test/fakes/world.py` |
+> | L3 RED concentrado en `_actor` | Low | ACCEPT | Un solo stub ocultaba qué operación falla | Un `NotImplementedError` por stub de dominio |
+> | L4 `if` dentro de un test | Low | ACCEPT | Lógica condicional en tests | Eliminado |
+> | L1 tres archivos > 600 líneas (738, 702, 625) | Low | DEFER | Están bajo el umbral del skill (1000); volver a dividir ahora mueve node IDs citados en `epics.md` y la trazabilidad sin ganancia de cobertura. Se revisa al pasar a GREEN | Sin cambio (owner B) |
+
 # Test Quality Review: solu2-module1/test/atdd (Módulo 1)
 
 **Quality Score**: 79/100 (C - Acceptable)

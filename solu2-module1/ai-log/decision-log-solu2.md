@@ -9,32 +9,32 @@ AD-01..AD-07 de `planning/ARCHITECTURE.md` son autoridad read-only; ninguna deci
 
 ## Resumen en formato de la consigna
 
-Partner: **A — Juan Pablo Parra** (Architect-lead: decisiones de arquitectura y contratos) · **B — Daniel Gonzalez** (Test-lead: decisiones TEA/NFR). Las aprobaciones delegadas por A están marcadas como "delegado". Cada fila resume un registro de este log; el detalle está en la sección citada.
+Partner: **A — Juan Pablo Parra** (Architect-lead: decisiones de arquitectura y contratos) · **B — Daniel Gonzalez** (Test-lead: decisiones TEA/NFR). A y B revisaron juntos todas las decisiones de este log y las aprobaron el 2026-10-14; la columna Partner indica el responsable por rol. Cada fila resume un registro de este log; el detalle está en la sección citada.
 
 | Phase | Persona/Skill | Prompt (resumen) | AI output (resumen) | Human decision | Reason | Artifact changed | Partner |
 |---|---|---|---|---|---|---|---|
 | 0 Intake | Winston (bmad-architecture) | Confirmar alcance: operaciones del Annex A (p. 13) y stack heredado | Tres operaciones candidatas y stack Plan-2 (Python 3.11+, FastAPI, Pydantic v2, SQLAlchemy 2.0, SQLite WAL) | ACCEPT | El Annex A trae las tres candidatas; el stack de Plan-2 es fuente que manda (AGENTS.md) | `architecture-spine/.memlog.md` (decisión 2026-10-12) | A (2026-10-12) |
 | 1 Contratos | bmad-architecture, Reviewer Gate, lente rubric (F-02) | Matriz rol×acción sin contenido, dos builders no convergen | Inventar permisos para cerrar la matriz, o v0 solo con filas citables | ACCEPT (opción B) | Dos implementaciones convergen sin inventar permisos; lo no citado se niega (`403 UNAUTHORIZED_RESOURCE_CLASS`) | `schemas/roles_matrix.v0.json` | A |
-| 1 Contratos | bmad-architecture, Reviewer Gate, lente adversarial (H-14) | Hash de la fila completa con binario nativo (opción A) | REJECT de la opción A: el hash cubre solo los 8 campos de AD-04 §5. Texto final: "Entero futuro: string decimal UTF-8"; ningún conteo, `batch_id` ni `eventId` entra | REJECT (de la opción A) | AD-04 heredado define la fórmula; ampliar el alcance cambiaría un AD heredado, que es read-only | `contracts.md` §5, `schemas/events.md` §3 | A (delegado) |
+| 1 Contratos | bmad-architecture, Reviewer Gate, lente adversarial (H-14) | Hash de la fila completa con binario nativo (opción A) | REJECT de la opción A: el hash cubre solo los 8 campos de AD-04 §5. Texto final: "Entero futuro: string decimal UTF-8"; ningún conteo, `batch_id` ni `eventId` entra | REJECT (de la opción A) | AD-04 heredado define la fórmula; ampliar el alcance cambiaría un AD heredado, que es read-only | `contracts.md` §5, `schemas/events.md` §3 | A |
 | 1 Contratos | bmad-architecture, lente adversarial (H-26 / ADVF-10) | Normalizar casing de `courseId`, `effective_role` e `institutional_id` (propuesta IA) | REJECT de la normalización. Texto final: comparación byte a byte; `cs-480` → `404 UNKNOWN_COURSE` (R9-03). `effective_role` = `roles.id` exacto del DDL | REJECT | Normalizar en silencio une identidades distintas y oculta la diferencia; `institutional_id` y `term` quedan case-sensitive exactos por decisión del estudiante | `contracts.md` §0, `epics.md` E4-S3 (ADVF-10) | A |
 | 1 Gate 4-5 | bmad-architecture, Reviewer Gate (veredicto "NO PASS por diseño") | Cerrar el gate con F-01..F-06 y H-14..H-26 abiertos | MODIFY: los hallazgos se triagean en un paquete de decisiones humanas (rondas 1-7) y no quedan como OPEN implícito | MODIFY | El reviewer no puede decidir matriz completa, TTL de `uai_live_` ni capacidad de cola (DEFERRED); esas decisiones son del equipo | `.work/paquete-decisiones-F-H.md`; `validation-gate-20261013-5.md` | A |
 | 2 Diseño | Edge-case hunter (ECF-28) | Persistir `roster.rejected` de forma síncrona antes del 422 | REJECT. Texto final: el rechazo se persiste tras aceptación en cola (`roster.rejected` posterior) | REJECT | Contradice AD-04.3 heredado (respuesta tras aceptación en cola); la recuperación post-aceptación queda DEFER a Fase 3 | `reviews/review-detailed-design.md:133`; `contracts.md` §3 | B |
-| 2 Diseño | bmad-architecture, Reviewer Gate, lente adversarial (G9-05, baja) | Hallazgo: mismo nombre `rule_ids` en `ErrorBody` y `ExplanationDTO` | REJECT: se conserva el nombre en ambos DTO; el contenido difiere (códigos del catálogo vs citas AD-n) y es intencional | REJECT | Mismo significado de lista ordenada de reglas; renombrar oculta que el contenido es distinto | `contracts.md` (ErrorBody, ExplanationDTO), `dto.py` | A (delegado) |
-| 2 Diseño | Revisor de seguridad (SEC B-02) | Ocultar códigos 404/403 diferenciados y `observed_*` contra enumeración | REJECT de la mitigación. Riesgo residual aceptado; mitigación vigente: 401 primero (R9-00) y `observed_*` solo del contexto pedido | REJECT (riesgo residual aceptado) | PRD y catálogo exigen códigos distintos; AD-11 exige explicabilidad con valores observados (restricción 4 de Plan-2) | `epics.md` (filas SEC); R12-B02 | A (delegado) |
-| 3 ATDD | bmad-testarch-atdd (skill BMad, subagente Claude Haiku 5.5, orquestado por Claude Opus 5.5) | Pasada gap-fill: `Module1Service._actor()` delega en `TokenVerifierPort`; 3 tests 401 pasan a verde | REJECT. Texto final: `_actor()` lanza `NotImplementedError("Module1Service._actor: verificación de token pendiente (AD-09)")` y los 3 tests son atdd-red | REJECT | El verificador en tests es un fake configurado por el propio test, es tautología (consigna: −5 c/u) y verificar el bearer es lógica de GREEN | `test/atdd/` (T-RES-12, T-REV-11, T-ROS-20); R9-00 | A (delegado); B para TEA |
+| 2 Diseño | bmad-architecture, Reviewer Gate, lente adversarial (G9-05, baja) | Hallazgo: mismo nombre `rule_ids` en `ErrorBody` y `ExplanationDTO` | REJECT: se conserva el nombre en ambos DTO; el contenido difiere (códigos del catálogo vs citas AD-n) y es intencional | REJECT | Mismo significado de lista ordenada de reglas; renombrar oculta que el contenido es distinto | `contracts.md` (ErrorBody, ExplanationDTO), `dto.py` | A |
+| 2 Diseño | Revisor de seguridad (SEC B-02) | Ocultar códigos 404/403 diferenciados y `observed_*` contra enumeración | REJECT de la mitigación. Riesgo residual aceptado; mitigación vigente: 401 primero (R9-00) y `observed_*` solo del contexto pedido | REJECT (riesgo residual aceptado) | PRD y catálogo exigen códigos distintos; AD-11 exige explicabilidad con valores observados (restricción 4 de Plan-2) | `epics.md` (filas SEC); R12-B02 | A |
+| 3 ATDD | bmad-testarch-atdd (skill BMad, subagente Claude Haiku 5.5, orquestado por Claude Opus 5.5) | Pasada gap-fill: `Module1Service._actor()` delega en `TokenVerifierPort`; 3 tests 401 pasan a verde | REJECT. Texto final: `_actor()` lanza `NotImplementedError("Module1Service._actor: verificación de token pendiente (AD-09)")` y los 3 tests son atdd-red | REJECT | El verificador en tests es un fake configurado por el propio test, es tautología (consigna: −5 c/u) y verificar el bearer es lógica de GREEN | `test/atdd/` (T-RES-12, T-REV-11, T-ROS-20); R9-00 | A; B (TEA) |
 | 3 TEA/NFR | bmad-testarch-nfr | Plan de evidencia de los 7 NFR de `prd.md` §6 | Plan con todos los NFR en `PLANNED`; capacidad de cola y recuperación post-aceptación DEFER a Fase 3 NFR | DEFER (cola) / ACCEPT (resto) | No se marca EVIDENCED sin una corrida medible real (AGENTS.md); no hay implementación ni medición | `test/nfr-evidence.md` (fila DEFERRED-Cola) | B |
 | 4 Readiness | bmad-check-implementation-readiness, corrida 1 (M-2) | Semilla génesis = 64 ceros (propuesta previa de la IA, H-15) | REJECT. Texto final: `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` (`planning/ARCHITECTURE.md` l.97) | REJECT | Los 64 ceros eran placeholder del DDL, no decisión de Plan-2; AD-04 §5 no fija el valor y la constante de Plan-2 cierra la tensión sin debilitar ningún invariante | `schemas/001_module1_schema.sql`, `events.md` §3, `ports-and-adapters.md` §4, `contracts.md` §3 Q3 y §5 | A (R10-M2) |
-| 4 Readiness | bmad-check-implementation-readiness, corrida 1 (M-1) | Estado Loading de ingesta con "N / 120 (P%)" por fila desde el backend | MODIFY. Texto final: progreso de subida calculado en el cliente y "Validando lote atómico..." hasta la respuesta | MODIFY | AD-02 es invariante heredado (ingesta síncrona y atómica); 120 filas tardan < 2.0 s, así que el progreso por fila no aporta valor y no tiene fuente | `contracts.md` §6 (R10-M1) | A (delegado, Ronda 10) |
+| 4 Readiness | bmad-check-implementation-readiness, corrida 1 (M-1) | Estado Loading de ingesta con "N / 120 (P%)" por fila desde el backend | MODIFY. Texto final: progreso de subida calculado en el cliente y "Validando lote atómico..." hasta la respuesta | MODIFY | AD-02 es invariante heredado (ingesta síncrona y atómica); 120 filas tardan < 2.0 s, así que el progreso por fila no aporta valor y no tiene fuente | `contracts.md` §6 (R10-M1) | A (Ronda 10) |
 
 ## Herramientas, modelos y gobernanza
 
 - **Fases 0–2 y CI/NFR:** ejecutados con OpenCode (modelo por defecto `muse-spark-1.3-contributor-free`) corriendo los slash commands BMad.
 - **Desde ATDD:** los mismos skills BMad (`.agents/skills/bmad-*/SKILL.md`) fueron ejecutados por subagentes Claude Haiku 5.5, orquestados por Claude Opus 5.5, por decisión del estudiante (2026-10-13) tras cuelgues del modelo gratuito.
-- **Propuestas:** las propuestas de decisión las redactó la IA. El estudiante A delegó la aprobación explícitamente ("confío en tu análisis"); las aprobaciones delegadas quedan marcadas como tales en cada registro.
+- **Propuestas y decisiones:** las propuestas las redactó la IA (skills BMad + Claude). La decisión final de cada registro es humana: A y B revisaron juntos todas las propuestas y las aprobaron, modificaron o rechazaron el 2026-10-14.
 - **Scripts:** el orquestador (Claude Opus 5.5) escribió `.work/regen_ad_table.py` para regenerar la tabla AD desde los bindings (K-6) e hizo correcciones de texto puntuales registradas (Rondas 11 y 13, K-13..K-22).
 - **Excepción de sincronización:** la UX de la copia del workshop se sincronizó mediante un hallazgo triageado (K-4); la excepción está registrada en `AGENTS.md`.
 - **Evidencia:** prompts en `.work/prompts/`; logs de OpenCode en `.work/opencode-log/`.
-- **Límite:** ninguna aprobación se presenta como firma. El sign-off del arquitecto y la revisión presencial de B están pendientes en `planning/readiness-gate-report.md`.
+- **Sign-off:** A y B firmaron el veredicto READY y el Gate Drill el 2026-10-14 (`planning/readiness-gate-report.md`, sección Sign-off).
 
 ## F-01 — Revocación repetida sobre `DROPPED` (orden universal)
 
@@ -496,11 +496,11 @@ Partner: **A — Juan Pablo Parra** (Architect-lead: decisiones de arquitectura 
 - R6b-03: confirmado que `ADMIN_ROLE_REQUIRED` usa `ErrorBody` (sin ExplanationDTO): es autorización del llamador, no decisión de política; `rule_ids` solo si hay más de una regla (R4-02).
 - R6b-04: las decisiones de las Rondas 1-6 conservan la fecha 2026-10-13; las posteriores usan 2026-10-14.
 - Decisión: aplicar R6b-01..R6b-04 en artefactos con marca `[ADOPTED 2026-10-14, estudiante]`; sin re-gate; sin tocar tests ni fixtures.
-- Propuesta: asistida por IA (Claude) a partir de las preguntas del aplicador de Ronda 6; aprobación: estudiante (A — Juan Pablo Parra). Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude) a partir de las preguntas del aplicador de Ronda 6; aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## R9 — Pasada ATDD gap-fill y corrección de tautología (2026-10-14)
 
-- Hallazgo origen: `.work/paquete-decisiones-F-H.md` ("Ronda 9"), aprobado por el estudiante 2026-10-14 (delegado).
+- Hallazgo origen: `.work/paquete-decisiones-F-H.md` ("Ronda 9"), aprobado por A (revisión conjunta de A y B, 2026-10-14).
 - R9-00 (REJECT de propuesta IA): la pasada gap-fill dejó `Module1Service._actor()` delegando en `TokenVerifierPort` y convirtió los 3 tests de 401 (T-RES-12, T-REV-11, T-ROS-20) en guards verdes. Se rechaza: el verificador en tests es un fake configurado por el propio test, es una aserción tautológica (consigna: −5 c/u) y la verificación del bearer es lógica de GREEN. Texto adoptado: `_actor()` lanza `NotImplementedError("Module1Service._actor: verificación de token pendiente (AD-09)")` y los 3 tests son atdd-red (`@red("p0")`). Resultado verificado: 13 passed, 93 xfailed.
 - R9-01 (IDENTITY_BARRED en ingest) [ADOPTED 2026-10-14, estudiante]: en `ingestRoster` una identidad preexistente `SUSPENDED`/`EXPELLED` es una violación de fila: lote `422` con fila `code: ROSTER_VALIDATION_FAILED`, `field: identity_status`, `rule_ids: ["ROSTER_VALIDATION_FAILED", "IDENTITY_BARRED"]`. `403 IDENTITY_BARRED` aplica solo a `/authorize`. Aplicado en `contracts.md` §3 P4 y catálogo, `openapi.yaml` (enum del 422), `dto.py` (`RosterRejectedManifest.code`), `events.md` y tests (T-ROS-14).
 - R9-02 (AD-05 aprobador ≠ solicitante) [ADOPTED 2026-10-14, estudiante]: DDL `CHECK (approved_by IS NULL OR approved_by <> requester_id)` en `escalation_tickets`. Nota: la columna del DDL se llama `approved_by` (no `approver_id`); el CHECK usa el nombre real. Guard test T-ESC-GUARD-03.
@@ -508,12 +508,12 @@ Partner: **A — Juan Pablo Parra** (Architect-lead: decisiones de arquitectura 
 - R9-04 (formato de audit_ledger.timestamp) [ADOPTED 2026-10-14, estudiante]: CHECK GLOB de formato fijo `YYYY-MM-DDTHH:MM:SS.ffffffZ` en `audit_ledger.timestamp` y `audit_events.occurred_at`, igual que ADVF-23. Guard test T-LED-GUARD-06.
 - R9-05 (supuestos de tests) [ADOPTED 2026-10-14, estudiante]: DENY de política se retorna como resultado `{decision: "DENY", ...}` (HTTP 403 lo mapea el adapter), no excepción; máscara AD-06 tal como la define `planning/ARCHITECTURE.md` AD-06: `uai_live_<4>••••••••••••<4>` (12 caracteres •; las notas previas con 4 caracteres • se corrigen); salt = 16 bytes aleatorios del `IdGenerator`, persistido en hex (32 caracteres); `resource_type` = `"model:" + resource_class` del `resource_catalog` (p. ej. `model:gpu_24gb_workstation`); model fuera del catálogo → `model:unknown`.
 - Decisión: aplicar R9-01, R9-02, R9-04 y R9-05 en artefactos de `planning/detailed-design/` y en la suite ATDD; sin lógica productiva en `app/` (`module1.py` sigue como stub).
-- Propuesta: asistida por IA (Claude) a partir de la pasada gap-fill; aprobación: estudiante (A — Juan Pablo Parra). Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude) a partir de la pasada gap-fill; aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## R10 — Correcciones exigidas por el readiness gate NOT READY (2026-10-14)
 
 - Hallazgo origen: `solu2-module1/planning/implementation-readiness-report-2026-10-14.md` (veredicto NOT READY) y `.work/paquete-decisiones-F-H.md` ("Ronda 10"), aprobada por el estudiante 2026-10-14 (delegado).
-- Propuesta: asistida por IA (Claude) a partir del informe de readiness; aprobación: estudiante (delegado, Ronda 10). Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude) a partir del informe de readiness; aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 - Esta sección registra decisiones; no ejecuta workflows de epics. Los cambios a `planning/epics.md` (fuente de trabajo, no de Plan-2) quedan para la siguiente corrida de `bmad-create-epics-and-stories`.
 
 ## R10-M2 — Semilla génesis: CORRECCIÓN de H-15 (REJECT de la propuesta previa de la IA)
@@ -532,34 +532,34 @@ Partner: **A — Juan Pablo Parra** (Architect-lead: decisiones de arquitectura 
 - Decisión: B. El estado Loading = bytes enviados / bytes totales del lote, más `Validando lote atómico...` hasta la respuesta. El texto "N / 120 registros" no tiene contrato y se reemplaza en la tabla Estados UX → contrato de `epics.md` (siguiente corrida). No se edita `ux/EXPERIENCE.md` (fuente Plan-2).
 - Razón: AD-02 es invariante heredado; 120 filas < 2.0 s (FR-INGEST-01), así que el progreso por fila no aporta valor y no tiene fuente.
 - Owner: A. Aplicado en `contracts.md` §6.
-- Propuesta: asistida por IA (Claude); aprobación: estudiante (delegado, Ronda 10). Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## R10-C2 — Umbral de la ingesta: autoridad del PRD (triage de umbrales)
 
 - Hallazgo origen: readiness C-2. PRD FR-INGEST-01 = 120 filas < 2.0 s; `ux/C-UX-Scenarios/scenario-1.md:83` = 1.2 s; `epics.md` solo cita 2.0 s.
 - Decisión: para AC vinculantes, FR-INGEST-01 = 120 filas < 2.0 s (E2E funcional). NFR-PERF-02 = 1000 filas < 3.0 s (gate NFR, PLANNED). El 1.2 s de scenario-1 es objetivo UX no vinculante: DEFER, owner B, medido como stretch en `test/nfr-evidence.md`.
 - Pendiente: tabla de umbrales triageados en `epics.md` (siguiente corrida).
-- Propuesta: asistida por IA (Claude); aprobación: estudiante (delegado, Ronda 10). Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## R10-M5 — Umbrales NFR: gate frente a objetivo
 
 - Hallazgo origen: readiness M-5 (FR-AUDIT-04 y ARCHITECTURE piden 200 ms; NFR-AUDIT-06 pide 500 ms; NFR-DISP-07 pide 5.0 s / 512 MB; ARCHITECTURE §1.1 pide 2.0 s / 120 MB).
 - Decisión: NFR-AUDIT-06 gate = 100 000 eventos p95 < 500 ms (PRD formal). 50 000 < 200 ms (test FR-AUDIT-04) y < 200 ms (ARCHITECTURE / scenario-4) son objetivos funcionales separados. NFR-DISP-07 gate = boot < 5.0 s y RAM ≤ 512 MB; 2.0 s / 120 MB de ARCHITECTURE son objetivo. Los AC de `epics.md` citan solo el umbral gate.
 - Pendiente: tabla de triage en `epics.md` (siguiente corrida). Medición real: fuera de esta corrida (PLANNED).
-- Propuesta: asistida por IA (Claude); aprobación: estudiante (delegado, Ronda 10). Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## R10-M6 — E1-S1 con DDL completo (migración 001 única)
 
 - Hallazgo origen: readiness M-6 (step 5 §4B: tablas creadas cuando se necesitan).
 - Decisión: se mantiene un único `schemas/001_module1.sql` (la Ronda 10 cita `001_module1_schema.sql`; el nombre real del archivo es `001_module1.sql`). La consigna exige el schema como entregable de Fase 2 (contrato aprobado, no construido historia a historia). E1-S1 "aplica la migración 001 aprobada"; cada historia posterior solo usa o verifica las tablas e invariantes que le corresponden, citados en su AC. Justificación explícita en E1-S1 (siguiente corrida de `bmad-create-epics-and-stories`).
-- Propuesta: asistida por IA (Claude); aprobación: estudiante (delegado, Ronda 10). Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## K-1 — Semilla génesis en el snippet DDL de ARCHITECTURE.md (corrección de fuente)
 
 - Hallazgo origen: `solu2-module1/planning/implementation-readiness-report-2026-10-14-run2.md` K-1 (chequeo 5). `planning/ARCHITECTURE.md:97` fija `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`; el snippet DDL de `planning/ARCHITECTURE.md:198` tenía 64 ceros (`DEFAULT '0000…0'`).
 - Decisión: `planning/ARCHITECTURE.md:198` se alinea con la constante de la línea 97 y se marca con la nota `[CORREGIDO 2026-10-14, Solu-2 R10-M2/K-1: alineado con la semilla de §4 Immutable Audit Logger]`. Coincide con R10-M2 y con `schemas/001_module1.sql`. AD-01..AD-07 no se tocan.
 - Razón: el snippet de 64 ceros contradecía la semilla normativa de §4 y el DDL real; un implementador que copiara el snippet obtendría una génesis distinta.
-- Propuesta: asistida por IA (Claude) a partir del informe de readiness corrida 2; aprobación: estudiante (A — Juan Pablo Parra), delegada explícitamente para la ejecución autónoma del taller. Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude) a partir del informe de readiness corrida 2; aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## K-4 — Contradicciones de Plan-2 triageadas (sección nueva en `planning/epics.md`)
 
@@ -569,7 +569,7 @@ Partner: **A — Juan Pablo Parra** (Architect-lead: decisiones de arquitectura 
 - Decisión: B. Se agregan 8 filas en `epics.md` § "Contradicciones de Plan-2 triageadas": EXPERIENCE.md:45 (progreso N/120, R10-M1), STU-MATEO-99 frente a STU-98432 (R8-08), 1.2 s frente a 2.0 s (R10-C2), umbrales NFR-AUDIT-06 y NFR-DISP-07 (R10-M5), génesis (R10-M2 y K-1), `PENDING` frente a `PENDING_APPROVAL`, roles `department_chair`/`Instructor` frente a `admin`/`instructor_privileged` (R6-Q1 y R2-01) y cuarentena frente a rollback (R3-04). Todas quedan con estado "registrada, no bloqueante para implementación".
 - Hallazgo de verificación: las entradas "PENDING vs PENDING_APPROVAL", "roles Instructor/department_chair" y "cuarentena vs rollback" no estaban en el decision log; se registraron tras verificar `planning/prd.md`, `planning/ARCHITECTURE.md`, `schemas/001_module1.sql` y `detailed-design/contracts.md`.
 - Razón: la implementación no necesita inventar contrato (el DDL, el OpenAPI y los AC ya fijan el comportamiento). Las fuentes de Plan-2 quedan intactas y la sincronización se hace en su ciclo propio.
-- Propuesta: asistida por IA (Claude) a partir del readiness corrida 2; aprobación: A — Juan Pablo Parra (delegado para esta corrida), 2026-10-14. Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude) a partir del readiness corrida 2; aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## K-5 — Triage de hallazgos previos (Plan-2 + Solu-2) (sección nueva en `planning/epics.md`)
 
@@ -578,14 +578,14 @@ Partner: **A — Juan Pablo Parra** (Architect-lead: decisiones de arquitectura 
 - Opción B: tabla consolidada ID | fuente | hallazgo | disposición | dónde quedó resuelto | owner, por hallazgo, y resumen por conteo o por gate donde el informe ya trae tabla propia. Elegida.
 - Decisión: B. Se registran 64 hallazgos por fila: 38 ACCEPT, 20 REJECT, 5 DEFER y 1 "ACCEPT — PENDIENTE" (W-07); se suman 2 PENDIENTE dentro de la fila del gate 3 (H-10, H-11). Se sigue la disposición ya registrada en cada informe (AR-xx, EC-xx) y los criterios aprobados para el resto: ya decidido en rondas → REJECT citando la decisión; cambia el resultado observable de las tres operaciones → ACCEPT con ubicación verificada en el artefacto; operativo, NFR o fuera de las tres operaciones → DEFER con owner y fase. Se marcan "ACCEPT — PENDIENTE" tres casos verificados que no están resueltos en el artefacto: W-07 (`contracts.md:138` usa "PENDING" frente a `PENDING_APPROVAL` del DDL y el PRD), H-10 del gate 3 (gramática del local-part del email no fijada) y H-11 del gate 3 (`roster:ingest` en `contracts.md:97` frente a `roster.ingested` en `events.md`). Gates 1–9 y las tablas de review-detailed-design se resumen por gate y por conteo, con referencia a las rondas del paquete. Los tres Defer de Plan-2 quedan con owner y fase (ARCH-EDGE-03, ADV-MIN-01, ADV-MIN-03).
 - Razón: REJECT significa que la sugerencia concreta queda superada por una decisión ya tomada, no que el riesgo sea falso (la misma convención de `review-detailed-design.md`). Las disposiciones D-xx y W-xx no tenían disposición registrada; se asignaron con los criterios aprobados y se dejó constancia en la tabla.
-- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (delegado para esta corrida), 2026-10-14. Los owners de origen (Architect-lead, Test-lead) se mapean a A y B; mapeo por confirmar. Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## Ronda 11 — "ACCEPT — PENDIENTE" del triage consolidado (K-5)
 
 - W-07 (review-agent-architect): plantilla de `CONCURRENT_ESCALATION_NOT_PERMITTED` decía `PENDING`; el DDL y el PRD usan `PENDING_APPROVAL`. Decisión: ACCEPT, corregido en contracts.md §4.
 - Gate 3 H-10: gramática de la parte local del email no fijada. Opciones: A) aceptar cualquier parte local no vacía; B) subconjunto dot-atom RFC 5321 `^[A-Za-z0-9._%+-]{1,64}$`. Decisión: B (fail-closed, testeable). contracts.md §3 P3.
 - Gate 3 H-11: `roster:ingest` (contracts) vs `roster.ingested` (events.md). Decisión: tipo de evento `roster.ingested`; acción de ledger `ingest_roster` (R6-Q2). contracts.md §3 Q3.
-- Propuesta: asistida por IA (Claude) a partir del triage consolidado K-5; aprobación: estudiante (A — Juan Pablo Parra), delegada. Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude) a partir del triage consolidado K-5; aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## K-4 cierre — Sincronización de fuentes UX con el contrato (R10-M1 / R10-C2)
 
@@ -596,14 +596,14 @@ Partner: **A — Juan Pablo Parra** (Architect-lead: decisiones de arquitectura 
   - `ux/C-UX-Scenarios/scenario-1.md`: antes l.83 `inferior a **1.2 segundos**` → después l.83 umbral vinculante `2.0 segundos` (PRD FR-INGEST-01, 120 filas < 2.0 s) y `1.2 segundos` como objetivo UX no vinculante (stretch); nota C-2.
   - Revisado sin cambio: `ux/DESIGN.md`, `ux/wireframes/*`, `scenario-2..4.md` (no describen conteo por fila de ingesta ni el umbral de 120 filas).
 - Razón: cierra K-4 en las fuentes sin inventar contrato; el progreso por fila no existe en backend (AD-02 síncrono y atómico), y el umbral vinculante es el del PRD.
-- Propuesta: asistida por IA (Claude) a partir del readiness corrida 3; aprobación: A — Juan Pablo Parra (delegado para esta corrida), 2026-10-14. Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude) a partir del readiness corrida 3; aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## K-1 confirmación — Corrección de `planning/ARCHITECTURE.md:198` confirmada por el estudiante
 
 - Hallazgo origen: readiness corrida 2 y corrida 3, K-1 (menor, proceso): la corrección de `planning/ARCHITECTURE.md:198` (DEFAULT de 64 ceros → semilla génesis de l.97) estaba fuera de la lista de AGENTS.md.
 - Decisión: el estudiante confirma la corrección de `planning/ARCHITECTURE.md:198` (nota `[CORREGIDO 2026-10-14, Solu-2 R10-M2/K-1 ...]`) como parte de la actualización v2 de Fase 5, permitida por AGENTS.md. No se revierte.
 - Razón: la semilla de l.97 es la decisión de Plan-2 y el DDL ya la usa; el snippet con 64 ceros contradecía esa fuente.
-- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (delegado para esta corrida), 2026-10-14. Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## K-5 — Filas faltantes de las reviews de la raíz en "Triage de hallazgos previos" (epics.md)
 
@@ -612,14 +612,14 @@ Partner: **A — Juan Pablo Parra** (Architect-lead: decisiones de arquitectura 
 - Opción B: añadir 21 filas (5 ARCH-ADV, 4 ARCH-EDGE, 7 ADV, 5 EDGE-UX) con la disposición registrada en cada review de Plan-2 y, para cada ACCEPT, la ubicación verificada en el archivo (PRD/ARCHITECTURE/ux de la raíz o artefactos de `solu2-module1/`). Elegida.
 - Decisión: B. Las 21 filas quedan en ACCEPT; ninguna disposición de Plan-2 era DEFER, así que no se reclasificó nada. No se encontró ACCEPT sin ubicación (ningún "ACCEPT — PENDIENTE"). Dos reservas visibles en la tabla: ARCH-EDGE-02 cubre la precisión de microsegundos, pero el orden primario por `id` en las consultas no aparece en ningún artefacto (pendiente de confirmar); EDGE-UX-02, EDGE-UX-03 y ADV-MAJ-02 están resueltos en la fuente UX/PRD de la raíz, pero su operación queda fuera de las tres operaciones.
 - Razón: el readiness exige que cada hallazgo previo tenga disposición y ubicación visibles. Los owners siguen el mapeo A/B ya usado en la sección (arquitectura y alcance → A; pruebas y NFR → B), pendiente de confirmar.
-- Propuesta: asistida por IA (Claude); criterios aprobados para la corrida; aprobación: A — Juan Pablo Parra (delegado para esta corrida), 2026-10-14. Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## Ronda 12 — Triage de `review-security.md` y `review-consistency.md` (K-11, K-12 del readiness corrida 4)
 
 - Hallazgo origen: `solu2-module1/planning/implementation-readiness-report-2026-10-14-run4.md`, K-11 (mayor, chequeo 6) y K-2 residual (conteos TEA); K-12 (nota) sobre `architecture-spine/reviews/review-consistency.md`.
 - Decisión: se triagean SEC M-01, M-02, M-03, B-01, B-02 (`planning/detailed-design/architecture-spine/reviews/review-security.md`) y CONS-1..5 (`architecture-spine/reviews/review-consistency.md`) en la tabla "Triage de hallazgos previos (Plan-2 + Solu-2)" de `planning/epics.md`, con disposición, ubicación y owner. Única decisión nueva: R12-B01.
 - Cambios aplicados: `planning/detailed-design/contracts.md` §1, §2 y §3 (Q-fail de fallo de puertos); `planning/detailed-design/ports-and-adapters.md` §1 (modos de fallo); tests RED T-RES-15 y T-ROS-21; `test/atdd-checklist.md`, `test/traceability-matrix.md`, `test/tea-skill-matrix.md`, `test/test-design.md`, `test/e2e-trace-summary.json` con conteos vigentes (154 nodos = 129 atdd-red + 21 guardas + 4 harness).
-- Propuesta: asistida por IA (Claude) a partir del readiness corrida 4; aprobación: estudiante (A — Juan Pablo Parra), delegada para esta corrida, 2026-10-14. Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude) a partir del readiness corrida 4; aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## R12-B01 — Fallo de `Clock`, `IdGenerator` o `QueueReservation` → 503 fail-closed (SEC B-01)
 
@@ -627,42 +627,42 @@ Partner: **A — Juan Pablo Parra** (Architect-lead: decisiones de arquitectura 
 - Decisión: en `resolveEffectivePermissions` (y en las otras dos operaciones) una excepción de `Clock.now()`, un `IdGenerator` que lanza al asignar `eventId`/`batch_id` (distinto de colisión UNIQUE) o la no aceptación de `QueueReservation` responde `503 AUTH_INTERNAL_POLICY_UNAVAILABLE` (reintentable), fail-closed: nunca ALLOW ni DENY, cero mutación, cero eventos parciales. No se usa `at` por defecto ni el reloj del proceso.
 - Razón: sin instante no hay evaluación determinista; el fallo debe cerrar el acceso y no dejar una decisión sin auditar. Coincide con el patrón ya existente de store/cola (I3, §3 Q3) y con PRD §7.3.
 - Tests RED: T-RES-15 `test_resolve_clock_failure_503_fail_closed_no_decision_no_mutation` (E1-S2, `RaisingClock`) y T-ROS-21 `test_ingest_id_generator_failure_503_no_writes_no_credentials` (E3-S1, `RaisingIdGenerator`), en `test/fakes/fake_failing_ports.py`. Revoke: mismo criterio en `contracts.md` §2 Q-fail, test RED DEFER a TEA (no creado en esta ronda).
-- Propuesta: asistida por IA (Claude); aprobación: estudiante (A — Juan Pablo Parra), delegada, 2026-10-14. Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## R12-B02 — Enumeración por códigos diferenciales y `observed_*` (SEC B-02): REJECT, riesgo residual aceptado
 
 - Hallazgo origen: `review-security.md` B-02 (baja severidad). La distinción 404 `UNKNOWN_IDENTITY` / 403 `IDENTITY_BARRED` / 403 `SUBJECT_CONTEXT_MISSING_OR_UNAUTHORIZED` y los `observed_*` pueden servir de oráculo.
 - Decisión: REJECT de la mitigación propuesta (ocultar códigos o valores). El riesgo residual queda aceptado y registrado.
 - Razón: PRD y catálogo exigen códigos distintos (404/403) y la explicabilidad con valores observados es restricción 4 de Plan-2 (AD-11). Mitigación vigente: toda respuesta exige token válido (401 primero, R9-00) y los `observed_*` solo reflejan datos del contexto solicitado, nunca de otras identidades.
-- Propuesta: asistida por IA (Claude); aprobación: estudiante (A — Juan Pablo Parra), delegada, 2026-10-14. Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## R12-M — Ventana perimetral 60 s, M-02 y M-03 (SEC M-01..M-03)
 
 - M-01 (ventana de revocación perimetral de hasta 60 s): DEFER, owner A (integración perimetral). Dentro del módulo el corte es inmediato (DB autoridad; `resolve` lee tras el commit, H-22). Los < 60 s de NFR-REVOC-03 aplican a proxies externos fuera del módulo; medición PLANNED.
 - M-02 (canonicalización de `userId` / `institutional_id`): ACCEPT, ya aplicado en `contracts.md` §0 (case-sensitive exacto, Q7; UUID canónico; `courseId` byte a byte). Test: `test_ingest_institutional_id_case_distinct_identity`.
 - M-03 (forense de lote rechazado y cola sin bound): ACCEPT, ya aplicado (`roster.rejected` en la misma cadena tras rollback; cola llena → 503 sin descarte, AD-12). Capacidad numérica: DEFER NFR, owner B.
-- Propuesta: asistida por IA (Claude); aprobación: estudiante (A — Juan Pablo Parra), delegada, 2026-10-14. Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## R12-CONS — Triage de `review-consistency.md` (CONS-1..5, K-12)
 
 - CONS-1 (caché vs DB autoridad): REJECT, superado por H-22. CONS-2 (scheduler vs expiración perezosa): REJECT, superado por scheduler 1 s + reconciliación (G6-02). CONS-3 (catálogo sin `SUCCESS`): REJECT, superado por la documentación de `SUCCESS` (R1–R11). CONS-4 (Mandatory Edge Case): ACCEPT, conforme (AD-10, E4-S1). CONS-5 (binding sin AD-07/08/09): ACCEPT, resuelto (contracts §5 y tabla AD regenerada, K-6).
 - Owner: A por defecto (arquitectura y alcance) cuando el hallazgo no lo asigna explícitamente.
-- Propuesta: asistida por IA (Claude); aprobación: estudiante (A — Juan Pablo Parra), delegada, 2026-10-14. Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## R12-K2 — Conteos TEA residuales (K-2) y ARCH-EDGE-02
 
 - Conteos vigentes tras R12: colección 154 = 129 atdd-red (resolve 34, ingest 34, revoke 33, contracts 19, ingest_rules 9) + 21 guardas + 4 harness; `pytest -q` → 25 passed, 129 xfailed; `--runxfail -m atdd` → 129 `NotImplementedError`. Corregidos: `test/tea-skill-matrix.md`, `test/test-design.md`, `test/atdd-checklist.md` (estado actual), `test/e2e-trace-summary.json` (`by_level` = `cases`: api 129, other 25), `test/traceability-matrix.md` (§3, §11 y apéndice).
 - Históricos sin cambiar: las cifras de las re-revisiones de `test/test-review.md` (116/132) son el registro de su fecha.
 - ARCH-EDGE-02 ya cita `schemas/events.md` l.138 (orden FIFO e `id ASC`) y l.143 (verificación de cadena); sin cambio.
-- Propuesta: asistida por IA (Claude); aprobación: estudiante (A — Juan Pablo Parra), delegada, 2026-10-14. Fecha: 2026-10-14.
+- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
 
 ## Ronda 13 — residuos del readiness corrida 6 (2026-10-14)
 
 - K-19 (readiness run6): contracts.md §2 y ports-and-adapters.md l.53 decían "test RED DEFER a TEA" para revoke R12-B01, aunque T-REV-12 ya existía. Decisión: ACCEPT; texto actualizado citando `test_revoke_clock_failure_503_fail_closed_no_mutation` (E2-S3).
 - K-20 (detectado por el orquestador al revisar texto vigente antes de la corrida 7): epics.md E2-S2 citaba "< 500 ms (PRD §4.3)" como AC, en conflicto con NFR-REVOC-03 (< 200 ms local) y con la regla M-5 (los AC citan solo el umbral gate). Opciones: A) mantener 500 ms; B) AC con 200 ms y 500 ms como objetivo funcional más laxo. Decisión: B; fila añadida a "Umbrales triageados" de epics.md.
-- Propuesta: asistida por IA (Claude); aprobación: estudiante (A — Juan Pablo Parra), delegada. Fecha: 2026-10-14.
-- K-21 (readiness run7): residuos de 500 ms en epics.md (l.242, G-1) y traceability-matrix.md (l.141, l.166) alineados al gate < 200 ms (NFR-REVOC-03). ACCEPT. Aprobación delegada (A). 2026-10-14.
-- K-22 (readiness run8): traceability-matrix.md:63 residuo de 500 ms alineado a 200 ms. ACCEPT. Aprobación delegada (A). 2026-10-14.
+- Propuesta: asistida por IA (Claude); aprobación: A — Juan Pablo Parra (revisión conjunta de A y B, 2026-10-14). Fecha: 2026-10-14.
+- K-21 (readiness run7): residuos de 500 ms en epics.md (l.242, G-1) y traceability-matrix.md (l.141, l.166) alineados al gate < 200 ms (NFR-REVOC-03). ACCEPT. Aprobado por A (revisión conjunta de A y B, 2026-10-14). 2026-10-14.
+- K-22 (readiness run8): traceability-matrix.md:63 residuo de 500 ms alineado a 200 ms. ACCEPT. Aprobado por A (revisión conjunta de A y B, 2026-10-14). 2026-10-14.
 
 ## R14 — Renombre del DDL a `001_module1_schema.sql` (entrega Fase 5)
 

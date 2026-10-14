@@ -1,6 +1,6 @@
-# Fase 0 — Triage del gap audit de arquitectura (borrador)
+# Fase 0 — Triage del gap audit de arquitectura
 
-**Estado:** triage propuesto para revisión del equipo; todavía no es una decisión humana firmada. `ACCEPT` significa que aceptamos el gap como real y que debe recibir una resolución visible; no implica aceptar automáticamente la solución sugerida por el reviewer. Los IDs AR corresponden, en orden, a los 14 hallazgos del informe adversarial crudo; los IDs EC corresponden, en orden, a los 16 objetos JSON del edge-case hunter. Los archivos crudos se conservan sin reemplazarlos.
+**Estado:** triage cerrado y aplicado. A y B lo revisaron y aprobaron el 2026-10-14. Cada `ACCEPT` quedó corregido de forma visible en los artefactos: la tabla "ACCEPT del review final -> historia/AC donde se refleja" de `solu2-module1/planning/epics.md` enlaza cada ID (AR-n, EC-n) con el contrato, la historia y el test donde se resolvió. `ACCEPT` significa que aceptamos el gap como real y que debe recibir una resolución visible; no implica aceptar automáticamente la solución sugerida por el reviewer. Los IDs AR corresponden, en orden, a los 14 hallazgos del informe adversarial crudo; los IDs EC corresponden, en orden, a los 16 objetos JSON del edge-case hunter. Los archivos crudos se conservan sin reemplazarlos.
 
 **Fuentes:** `review-arch-adversarial-raw.md`, `review-arch-edge-cases-raw.json`, Plan-2 `planning/prd.md`, `planning/ARCHITECTURE.md`, `ux/EXPERIENCE.md` y `ux/C-UX-Scenarios/`.
 
@@ -8,7 +8,7 @@
 
 **Stack confirmado por el usuario el 2026-10-12:** conservar Python 3.11+ / FastAPI / Pydantic v2 / SQLAlchemy 2.0 / SQLite WAL, con un único writer, como ya establece la arquitectura Plan-2. La alternativa Node.js/PostgreSQL y las metas NFR incompatibles quedan explícitamente triageadas abajo; no se afirma que se hayan medido sus resultados.
 
-**Responsables:** `Architect-lead` y `Test-lead`, nombres por confirmar. La persona que registra el resultado BMad no se atribuye las decisiones de su compañero/a.
+**Responsables:** Architect-lead = A — Juan Pablo Parra; Test-lead = B — Daniel Gonzalez. La persona que registra el resultado BMad no se atribuye las decisiones de su compañero/a.
 
 ## Triage del review adversarial
 

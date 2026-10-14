@@ -3,7 +3,7 @@
 **Fecha:** 2026-10-14
 **Proyecto:** Solu-2: University AI Compute Fabric, Module 1
 **Workflow:** `bmad-correct-course` (ejecución en lote, sin preguntas, por instrucción del estudiante) seguido de `bmad-create-epics-and-stories` en modo edición.
-**Aprobación:** estudiante (A — Juan Pablo Parra), delegada, 2026-10-14. Decisiones: Ronda 10 de `.work/paquete-decisiones-F-H.md`.
+**Aprobación:** A — Juan Pablo Parra, 2026-10-14 (revisado con B). Decisiones: Ronda 10 de `.work/paquete-decisiones-F-H.md`.
 
 ## 1. Resumen del issue
 

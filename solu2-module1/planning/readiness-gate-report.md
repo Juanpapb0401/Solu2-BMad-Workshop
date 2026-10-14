@@ -511,7 +511,7 @@ Checklist de `bmad-sprint-planning`: 4 épicas, 16 historias, 4 retrospectivas p
 |---|---|---|
 | `test/traceability-matrix.md:63` | **Cerrado** | "Propagación `T1 - T0 < 200 ms` (G-1; gate NFR-REVOC-03; objetivo laxo 500 ms de PRD §4.3)" |
 | `test/nfr-evidence.md:15` | **Aclarado** | Cita PRD §4.3 con "objetivo funcional laxo; el gate es `T_local < 200 ms`" [ACTUALIZADO 2026-10-14, K-22] |
-| `ai-log/decision-log-solu2.md:635` | Registrado | "K-22 (readiness run8) ... ACCEPT. Aprobación delegada (A)." |
+| `ai-log/decision-log-solu2.md:635` | Registrado | "K-22 (readiness run8) ... ACCEPT. Aprobado por A." |
 
 ### Issues heredados (no bloquean)
 
@@ -567,5 +567,7 @@ Se eliminó la línea `- **Binding invariants:** AD-01, AD-10, AD-11. AD-09 (K-6
 ## Sign-off
 
 - Veredicto READY (corrida 9) y Gate Drill aceptados.
-- A — Juan Pablo Parra (Architect-lead): aprobación delegada explícitamente a la ejecución autónoma el 2026-10-13/14.
-- B — Daniel Gonzalez (Test-lead): pendiente de revisión presencial.
+- A — Juan Pablo Parra (Architect-lead): aprobado, 2026-10-14.
+- B — Daniel Gonzalez (Test-lead): aprobado, 2026-10-14.
+- Revisión conjunta de A y B de todas las decisiones del decision log antes de firmar.
+- Las líneas "Sign-off arquitecto: PENDIENTE" de las corridas 1–8 son el estado histórico de cada corrida.
