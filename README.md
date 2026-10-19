@@ -1,5 +1,7 @@
 # Solu-2 (Unit 4) — Módulo 1: User, Role, and Subject Access Manager
 
+**Proyecto de Juan Pablo Parra y Daniel Gonzalez.**
+
 University AI Compute Fabric · Pareja: **A — Juan Pablo Parra** (Architect-lead) · **B — Daniel Gonzalez** (Test-lead) · Tag de entrega: `solu2-ready`.
 
 ## Dónde está la entrega
