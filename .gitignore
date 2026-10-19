@@ -10,3 +10,12 @@ __pycache__/
 htmlcov/
 .DS_Store
 .work/swift-module-cache/
+
+# Herramientas locales de agentes (no forman parte de la entrega)
+.agents/
+.agent/
+.opencode/
+_bmad/
+_bmad-output/
+.work/prompts/
+.work/opencode-log/

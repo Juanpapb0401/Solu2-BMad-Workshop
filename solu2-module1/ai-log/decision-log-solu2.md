@@ -33,7 +33,7 @@ Partner: **A — Juan Pablo Parra** (Architect-lead: decisiones de arquitectura 
 - **Propuestas y decisiones:** las propuestas las redactó la IA (skills BMad + Claude). La decisión final de cada registro es humana: A y B revisaron juntos todas las propuestas y las aprobaron, modificaron o rechazaron el 2026-10-14.
 - **Scripts:** el orquestador (Claude Opus 5.5) escribió `.work/regen_ad_table.py` para regenerar la tabla AD desde los bindings (K-6) e hizo correcciones de texto puntuales registradas (Rondas 11 y 13, K-13..K-22).
 - **Excepción de sincronización:** la UX de la copia del workshop se sincronizó mediante un hallazgo triageado (K-4); la excepción está registrada en `AGENTS.md`.
-- **Evidencia:** prompts en `.work/prompts/`; logs de OpenCode en `.work/opencode-log/`.
+- **Evidencia:** los prompts y logs de ejecución se conservan localmente por el equipo (no se publican en el repositorio). En el repositorio quedan las rondas de decisión (`.work/paquete-decisiones-F-H.md`) y la evidencia del Gate Drill (`.work/gate-drill/`).
 - **Sign-off:** A y B firmaron el veredicto READY y el Gate Drill el 2026-10-14 (`planning/readiness-gate-report.md`, sección Sign-off).
 
 ## F-01 — Revocación repetida sobre `DROPPED` (orden universal)
